@@ -1,19 +1,31 @@
 const TokenType = require('./tokenType');
 const Token = require('./token');
 const FSM = require('./fsm')
+
 const CharUtils = require('../utils/charutils');
+const Report = require('../utils/report');
 
 module.exports = class {
-    constructor(input) {
+    constructor(input, file) {
         this.input = input;
+        this.file = file;
+
         this.len = input.length;
         this.counter = 0;
+
+        this.line = 1;
+        this.column = 1;
+
+        this.buffer = [];
 
         this.numberFSM = FSM.buildNumberFSM();
     }
 
     allTokens() {
         this.counter = 0;
+        this.line = 1;
+        this.column = 1;
+
         let tokens = [];
         let token;
 
@@ -26,18 +38,27 @@ module.exports = class {
     }
 
     nextToken() {
+        if (this.buffer.length > 0) return this.buffer.pop();
+
+        return this.readToken();
+    }
+
+    readToken() {
         this.skipWhiteSpace();
 
         if (this.counter >= this.len) {
-            return new Token(TokenType.Endofinput, 'end');
+            return new Token(TokenType.Endofinput, 'end', this.line, this.column, this.file);
         }
         
         let char = this.getChar();
 
-        // while (CharUtils.isNewline(char)) {
-        //     this.counter++;
-        //     char = this.getChar();
-        // };
+        while (CharUtils.isNewline(char)) {
+            this.counter++;
+            char = this.getChar();
+
+            this.line++;
+            this.column = 1;
+        };
 
         if (CharUtils.isLetter(char)) {
             return this.recogniseIdentifier();
@@ -64,9 +85,15 @@ module.exports = class {
         //     //return new Token(TokenType.Newline, 'new line');
         // }
 
-        console.log('BADAAD');
+        throw new Error(Report.error(`Unexpected token ${char}`, this.line, this.column, this.file));
+    }
 
-        throw new Error(`Unexpected token ${char}`);
+    lookahead() {
+        let token = this.readToken();
+
+        this.buffer.push(token);
+        
+        return token;
     }
 
     recogniseIdentifier() {
@@ -87,55 +114,66 @@ module.exports = class {
     recogniseKeyword(value) {
         let keywords = Object.keys(TokenType).filter(key => TokenType[key].charAt(0).toLowerCase() === value.charAt(0));
 
+        let column = this.column;
+        this.column += value.length;
+
         for (let keyword of keywords) {
-            if (value == TokenType[keyword]) return new Token(TokenType[keyword], value);
+            if (value == TokenType[keyword]) {
+                return new Token(TokenType[keyword], value, this.line, column, this.file)
+            };
         }
 
-        return new Token(TokenType.Identifier, value);
+        return new Token(TokenType.Identifier, value, this.line, column, this.file);
     }
 
     recogniseNumber() {
         let result = this.numberFSM.run(this);
 
         if (!result.recognised) {
-            throw new Error(`Invalid number ${result.value}`);
+            throw new Error(Report.error(`Invalid number ${result.value}`, this.line, this.column, this.file));
         }
 
-        return new Token(TokenType.Number, Number(result.value));
+        let column = this.column;
+        this.column += result.value.length;
+
+        return new Token(TokenType.Number, Number(result.value), this.line, column, this.file);
     }
 
     recogniseOperator(char) {
         this.counter++;
+        this.column++;
+
         if (char === '=') {
-            return new Token(TokenType.Equal, '=');
+            return new Token(TokenType.Equal, '=', this.line, this.column - 1, this.file);
         }
 
         if (char === '+') {
-            return new Token(TokenType.Plus, '+');
+            return new Token(TokenType.Plus, '+', this.line, this.column - 1, this.file);
         }
 
         if (char === '-') {
-            return new Token(TokenType.Minus, '-');
+            return new Token(TokenType.Minus, '-', this.line, this.column - 1, this.file);
         }
 
         if (char === '*') {
-            return new Token(TokenType.Times, '*');
+            return new Token(TokenType.Times, '*', this.line, this.column - 1, this.file);
         }
 
         if (char === '/') {
-            return new Token(TokenType.Divide, '/');
+            return new Token(TokenType.Divide, '/', this.line, this.column - 1, this.file);
         }
     }
 
     recogniseBracket(char) {
         this.counter ++;
+        this.column++;
 
         if (char === '(') {
-            return new Token(TokenType.OpenBracket, '(');
+            return new Token(TokenType.OpenBracket, '(', this.line, this.column - 1, this.file);
         }
 
         if (char === ')') {
-            return new Token(TokenType.CloseBracket, ')');
+            return new Token(TokenType.CloseBracket, ')', this.line, this.column - 1, this.file);
         }
     }
 
@@ -151,6 +189,7 @@ module.exports = class {
     skipWhiteSpace() {
         while (this.counter < this.len && CharUtils.isWhitespace(this.getChar())) {
             this.counter++;
+            this.column++;
         }
     }
 }

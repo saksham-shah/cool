@@ -42,7 +42,7 @@ module.exports = class {
 
     // Uses regex to find whitespace
     static isWhitespace(char) {
-        return /[ \n\t\r\f\v\u00A0\u2028\u2029]/.test(char);
+        return /[ \t\r\f\v\u00A0\u2028\u2029]/.test(char);
     }
 
     static isStringMark(char) {
