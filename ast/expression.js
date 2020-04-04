@@ -1,8 +1,8 @@
-module.exports = class {
+const AstBase = require('./astbase');
+
+module.exports = class extends AstBase {
     constructor() {
-        this.line = -1;
-        this.column = -1;
-        this.file = '';
+        super();
     }
 
     isExpression() {
@@ -17,7 +17,19 @@ module.exports = class {
         return false;
     }
 
+    isBlock() {
+        return false;
+    }
+
+    isFunctionCall() {
+        return false;
+    }
+
     isIntegerLiteral() {
+        return false;
+    }
+
+    isNativeExpression() {
         return false;
     }
 

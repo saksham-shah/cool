@@ -3,6 +3,7 @@ const TokenType = require('../lexer/tokenType');
 
 const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
+const Block = require('../ast/block');
 const IntegerLiteral = require('../ast/integer');
 const Reference = require('../ast/reference');
 const UnaryExpression = require('../ast/unaryexpression');
@@ -61,11 +62,24 @@ module.exports = class {
             throw new Error(Report.error(`Unexpected '${token.value}'`, token.line, token.column, token.file));
         }
 
-        value.line = token.line;
-        value.column = token.column;
-        value.file = token.file;
+        value.copyLocation(token);
 
         return value;
+    }
+
+    parseProgram() {
+        let token = this.currentToken;
+
+        let expressions = [];
+        while (!this.isNext(TokenType.Endofinput)) {
+            expressions.push(this.parseExpression());
+        }
+
+        let block = new Block(expressions);
+
+        block.copyLocation(token);
+
+        return block;
     }
 
     parseBinaryExpression(operatorIsNext, levelUp) {
@@ -83,9 +97,7 @@ module.exports = class {
             left = new BinaryExpression(left, operator, right);
         }
 
-        left.line = token.line;
-        left.column = token.column;
-        left.file = token.file;
+        left.copyLocation(token);
 
         return left;
     }
