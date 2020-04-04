@@ -29,5 +29,11 @@ module.exports = class extends Class {
 
             return result;
         })));
+
+        this.functions.push(new Func('toString', [], new NativeExpression(context => {
+            let str = Obj.create(context, Types.String);
+            str.setProperty('value', '"AAAAA"');
+            return str;
+        })))
     }
 }

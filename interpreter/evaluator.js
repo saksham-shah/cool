@@ -45,6 +45,10 @@ module.exports = class {
             return this.evaluateBlock(context, expression);
         }
 
+        if (expression.isFunctionCall()) {
+            return this.evaluateFunctionCall(context, expression);
+        }
+
         if (expression.isIntegerLiteral()) {
             return this.evaluateIntegerLiteral(context, expression);
         }
@@ -108,6 +112,7 @@ module.exports = class {
 
         if (func instanceof Obj) {
             if (func.type != Types.Function) {
+                console.log(func);
                 throw new Error(Report.error(`${call.name} is not a function`, call.line, call.column, call.file));
             }
 

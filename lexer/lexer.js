@@ -76,6 +76,10 @@ module.exports = class {
             return this.recogniseBracket(char);
         }
 
+        if (CharUtils.isComma(char)) {
+            return this.recogniseComma(char);
+        }
+
         // if (CharUtils.isNewline(char)) {
 
         //     this.counter++;
@@ -174,6 +178,15 @@ module.exports = class {
 
         if (char === ')') {
             return new Token(TokenType.CloseBracket, ')', this.line, this.column - 1, this.file);
+        }
+    }
+
+    recogniseComma(char) {
+        this.counter ++;
+        this.column++;
+
+        if (char === ',') {
+            return new Token(TokenType.Comma, ',', this.line, this.column - 1, this.file);
         }
     }
 

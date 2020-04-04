@@ -4,6 +4,7 @@ const TokenType = require('../lexer/tokenType');
 const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
+const FunctionCall = require('../ast/functioncall');
 const IntegerLiteral = require('../ast/integer');
 const Reference = require('../ast/reference');
 const UnaryExpression = require('../ast/unaryexpression');
@@ -53,6 +54,8 @@ module.exports = class {
 
             if (nextToken.type == TokenType.Equal) {
                 value = this.parseAssignment();
+            } else if (nextToken.type == TokenType.OpenBracket) {
+                value = this.parseFunctionCall();
             } else {
                 value = new Reference(this.expect(TokenType.Identifier).value);
             }
@@ -114,6 +117,24 @@ module.exports = class {
         return this.parseBinaryExpression(this.multiplicationIsNext, this.parseValue);
     }
 
+    parseArguments() {
+        this.expect(TokenType.OpenBracket);
+
+        let args = [];
+
+        while(!this.isNext(TokenType.CloseBracket)) {
+            args.push(this.parseExpression());
+            
+            if (!this.isNext(TokenType.CloseBracket)) {
+                this.expect(TokenType.Comma);
+            }
+        }
+
+        this.expect(TokenType.CloseBracket);
+
+        return args;
+    }
+
     parseAssignment() {     
         let identifier = this.expect(TokenType.Identifier).value;
 
@@ -134,6 +155,16 @@ module.exports = class {
         return expression;
     }
 
+    parseFunctionCall() {
+        let functionName = this.expect(TokenType.Identifier).value;
+
+        let args = this.parseArguments();
+
+        let func = new FunctionCall(undefined, functionName, args);
+
+        return func;
+    }
+
     isNext(...tokenTypes) {
         return tokenTypes.indexOf(this.currentToken.type) >= 0;
     }
@@ -142,7 +173,7 @@ module.exports = class {
         let token = this.currentToken;
 
         if (token.type !== tokenType) {
-            throw new Error(Report.error(`Expected ${tokenType} but instead received ${token.type}`), token.line, token.column, token.file);
+            throw new Error(Report.error(`Expected ${tokenType} but instead received ${token.type}`, token.line, token.column, token.file));
         }
 
         this.currentToken = this.lexer.nextToken();
