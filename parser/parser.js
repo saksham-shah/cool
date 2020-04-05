@@ -5,29 +5,22 @@ const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
 const FunctionCall = require('../ast/functioncall');
-const IntegerLiteral = require('../ast/integer');
+const NumberLiteral = require('../ast/number');
 const Reference = require('../ast/reference');
 const UnaryExpression = require('../ast/unaryexpression');
 
 const Report = require('../utils/report');
 
-// const BinaryExpression;
-// const BinaryExpression;
-// const BinaryExpression;
-// const BinaryExpression;
-
+// Parser takes a text input and uses a Lexer to generate tokens
+// Tokens are parsed into Expressions
 module.exports = class {
     constructor(input, file) {
         this.lexer = new Lexer(input, file);
         this.currentToken = this.lexer.nextToken();
     }
 
-    test() {
-        while (!this.isNext(TokenType.Endofinput)) {
-            console.log(this.parseValue());
-        }
-    }
-
+    // Base parse function - parses the next value (e.g. (1+3), "hi", -6.5, x=4, this)
+    // RETURNS: Expression
     parseValue() {
         let token = this.currentToken;
 
@@ -38,7 +31,7 @@ module.exports = class {
         let value = null;
 
         if (this.isNext(TokenType.Number)) {
-            value = new IntegerLiteral(this.expect(TokenType.Number).value);
+            value = new NumberLiteral(this.expect(TokenType.Number).value);
 
         } else if (this.unaryOperatorIsNext()) {
             let operator = token.value;
@@ -52,6 +45,7 @@ module.exports = class {
         } else if (this.isNext(TokenType.Identifier)) {
             let nextToken = this.lexer.lookahead();
 
+            // Parses according to the next token
             if (nextToken.type == TokenType.Equal) {
                 value = this.parseAssignment();
             } else if (nextToken.type == TokenType.OpenBracket) {
@@ -70,6 +64,8 @@ module.exports = class {
         return value;
     }
 
+    // Converts the entire program into a Block Expression
+    // RETURNS: Block Expression
     parseProgram() {
         let token = this.currentToken;
 
@@ -85,18 +81,31 @@ module.exports = class {
         return block;
     }
 
+    // Gets a binary expression, e.g. 3 + 5, -8 * 10
+    
+    // operatorIsNext checks if a particular operator (e.g. addition: + or -) is next
+    
+    // levelUp is a function which parses an expression which has a higher priority
+    // than the operator in operatorIsNext
+    // E.g. if operatorIsNext was about addition, levelUp would be multiplication
+
+    // RETURNS: Binary Expression
     parseBinaryExpression(operatorIsNext, levelUp) {
         let token = this.currentToken;
 
+        // Parse the higher priority expression first
         let left = levelUp.apply(this);
 
+        // Make a chain of this operator - e.g. 1 + 2*3 + 4 + (5) + ...
         while(operatorIsNext.apply(this)) {
             let operator = this.currentToken.value;
 
             this.currentToken = this.lexer.nextToken();
 
+            // Parse the higher priority expression on the right side
             let right = levelUp.apply(this);
 
+            // Kind of recursion? Binary Expressions within Binary Expressions
             left = new BinaryExpression(left, operator, right);
         }
 
@@ -105,18 +114,61 @@ module.exports = class {
         return left;
     }
 
+    // Another base parse function - parses an expression instead of a value (e.g. 3 + 5)
+    // For the above, parseValue would parse the number 3 and ignore the addition expression
+    // RETURNS: Expression
     parseExpression() {
         return this.parseAddition();
     }
 
+    // Currently the lowest priority operation
+    // RETURNS: Expression
     parseAddition() {
         return this.parseBinaryExpression(this.additionIsNext, this.parseMultiplication);
     }
 
+    // Currently the highest priority operation
+    // The only thing higher up is parseValue which deals with things like brackets
+    // RETURNS: Expression
     parseMultiplication() {
         return this.parseBinaryExpression(this.multiplicationIsNext, this.parseValue);
     }
+   
+    // RETURNS: Assignment Expression
+    parseAssignment() {     
+        let identifier = this.expect(TokenType.Identifier).value;
 
+        let operator = this.currentToken.value;
+
+        this.currentToken = this.lexer.nextToken();
+
+        return new Assignment(identifier, operator, this.parseExpression());
+    }
+
+    // RETURNS: Expression
+    parseBracket() {
+        this.expect(TokenType.OpenBracket);
+
+        let expression = this.parseExpression();
+
+        this.expect(TokenType.CloseBracket);
+
+        return expression;
+    }
+
+    // RETURNS: Function Call Expression
+    parseFunctionCall() {
+        let functionName = this.expect(TokenType.Identifier).value;
+
+        let args = this.parseArguments();
+
+        let func = new FunctionCall(undefined, functionName, args);
+
+        return func;
+    }
+
+    // Parses arguments for functions
+    // RETURNS: array of Expressions
     parseArguments() {
         this.expect(TokenType.OpenBracket);
 
@@ -135,40 +187,16 @@ module.exports = class {
         return args;
     }
 
-    parseAssignment() {     
-        let identifier = this.expect(TokenType.Identifier).value;
-
-        let operator = this.currentToken.value;
-
-        this.currentToken = this.lexer.nextToken();
-
-        return new Assignment(identifier, operator, this.parseExpression());
-    }
-
-    parseBracket() {
-        this.expect(TokenType.OpenBracket);
-
-        let expression = this.parseExpression();
-
-        this.expect(TokenType.CloseBracket);
-
-        return expression;
-    }
-
-    parseFunctionCall() {
-        let functionName = this.expect(TokenType.Identifier).value;
-
-        let args = this.parseArguments();
-
-        let func = new FunctionCall(undefined, functionName, args);
-
-        return func;
-    }
-
+    // Checks whether the next token is a particular type
+    // RETURNS: Boolean
     isNext(...tokenTypes) {
         return tokenTypes.indexOf(this.currentToken.type) >= 0;
     }
 
+    // Checks whether the next token is a particular type
+    // If it isn't, throws an error
+    // Used when only a particular token would be acceptable (e.g. closing brackets after opening them)
+    // RETURNS: Token
     expect(tokenType) {
         let token = this.currentToken;
 
@@ -176,10 +204,14 @@ module.exports = class {
             throw new Error(Report.error(`Expected ${tokenType} but instead received ${token.type}`, token.line, token.column, token.file));
         }
 
+        // Moves to the next token
         this.currentToken = this.lexer.nextToken();
 
         return token;
     }
+
+    // The below functions check if particular operators are next
+    // RETURNS: Boolean
 
     additionIsNext() {
         return this.isNext(TokenType.Plus, TokenType.Minus);

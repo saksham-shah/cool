@@ -1,10 +1,8 @@
 const Expression = require('../ast/expression');
 const FunctionCall = require('../ast/functioncall');
 
-const Types = require('../types/types');
-
-const Context = require('./context');
 const Obj = require('./object');
+const Types = require('../types/types');
 
 const Report = require('../utils/report');
 
@@ -13,25 +11,7 @@ module.exports = class {
 
     }
 
-    static test() {
-        let context = new Context();
-
-        context.environment.enterScope();
-
-        //context.environment.setValue('test', 123);
-
-        context.environment.enterScope();
-
-        context.environment.setValue('hi', 456);
-        context.environment.setValue('test', 456);
-
-
-
-        // return context.environment.getValue('test');
-
-        return context.environment;
-    }
-
+    // RETURNS: Obj (an Object in Cool)
     static evaluate(context, expression) {
         if (expression.isAssignment()) {
             return this.evaluateAssignment(context, expression);
@@ -49,8 +29,8 @@ module.exports = class {
             return this.evaluateFunctionCall(context, expression);
         }
 
-        if (expression.isIntegerLiteral()) {
-            return this.evaluateIntegerLiteral(context, expression);
+        if (expression.isNumberLiteral()) {
+            return this.evaluateNumberLiteral(context, expression);
         }
 
         if (expression.isNativeExpression()) {
@@ -105,8 +85,8 @@ module.exports = class {
             func = context.environment.getValue(call.name);
         }
 
+        // Very messy code, need to standardise this rather than use awkward if statements
         if (func == undefined) {
-            // console.log(object);
             throw new Error(Report.error(`Function '${call.name}' does not exist in current scope`, call.line, call.column, call.file));
         }
 
@@ -123,7 +103,7 @@ module.exports = class {
     }
 
     static evaluateFunctionCallImpl(context, object, func, call) {
-        context.environment.enterScope();
+        let argObjects = [];
 
         for (let i = 0; i < func.params.length; i++) {
             let thisArgument;
@@ -132,7 +112,14 @@ module.exports = class {
             } else {
                 thisArgument = this.evaluate(context, call.args[i]);
             }
-            context.environment.setValue(func.params[i], thisArgument);
+            argObjects.push(thisArgument);
+            // context.environment.setValue(func.params[i], thisArgument);
+        }
+
+        context.environment.enterScope();
+
+        for (let i = 0; i < func.params.length; i++) {
+            context.environment.setValue(func.params[i], argObjects[i]);
         }
 
         let self = context.self;
@@ -147,9 +134,9 @@ module.exports = class {
         return value;
     }
 
-    static evaluateIntegerLiteral(context, integer) {
+    static evaluateNumberLiteral(context, number) {
         let obj = Obj.create(context, Types.Int);
-        obj.setProperty('value', integer.value);
+        obj.setProperty('value', number.value);
         return obj;
     }
 

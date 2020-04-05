@@ -1,3 +1,4 @@
+const Keywords = require('./keywords');
 const TokenType = require('./tokenType');
 const Token = require('./token');
 const FSM = require('./fsm')
@@ -5,6 +6,7 @@ const FSM = require('./fsm')
 const CharUtils = require('../utils/charutils');
 const Report = require('../utils/report');
 
+// Lexer takes a text input and converts it into Tokens
 module.exports = class {
     constructor(input, file) {
         this.input = input;
@@ -16,11 +18,15 @@ module.exports = class {
         this.line = 1;
         this.column = 1;
 
+        // Used for the lookahead function
         this.buffer = [];
 
+        // Finite state machine which detects whether a number format is valid
         this.numberFSM = FSM.buildNumberFSM();
     }
 
+    // Generates all tokens for the input - currently unused
+    // RETURNS: array of Tokens
     allTokens() {
         this.counter = 0;
         this.line = 1;
@@ -37,28 +43,40 @@ module.exports = class {
         return tokens;
     }
 
+    // Generates the next token
+    // RETURNS: Token
     nextToken() {
+        // If there are tokens in the buffer, return them
         if (this.buffer.length > 0) return this.buffer.pop();
 
         return this.readToken();
     }
 
+    // Reads the next characters in the input to generate the next token
+    // RETURNS: Token
     readToken() {
+        // Skips spaces etc.
         this.skipWhiteSpace();
 
+        // End of the text input
         if (this.counter >= this.len) {
             return new Token(TokenType.Endofinput, 'end', this.line, this.column, this.file);
         }
         
+        // Next character
         let char = this.getChar();
 
-        while (CharUtils.isNewline(char)) {
-            this.counter++;
-            char = this.getChar();
+        // CURRENTLY BROKEN
+        // while (CharUtils.isNewline(char)) {
+        //     this.counter++;
+        //     char = this.getChar();
 
-            this.line++;
-            this.column = 1;
-        };
+        //     this.line++;
+        //     this.column = 1;
+        //     console.log(this.line);
+        // };
+
+        // Gets the corresponding token depending on what the next character is
 
         if (CharUtils.isLetter(char)) {
             return this.recogniseIdentifier();
@@ -92,6 +110,8 @@ module.exports = class {
         throw new Error(Report.error(`Unexpected token ${char}`, this.line, this.column, this.file));
     }
 
+    // Look at the next token without actually moving on to it (used by Parser)
+    // RETURNS: Token
     lookahead() {
         let token = this.readToken();
 
@@ -99,7 +119,11 @@ module.exports = class {
         
         return token;
     }
+    
+    // The next few methods all recognise and return a token
+    // RETURNS: Token
 
+    // Variable and function names and keywords
     recogniseIdentifier() {
         let value = '';
 
@@ -112,25 +136,29 @@ module.exports = class {
             char = this.getChar();
         } while (CharUtils.isLetter(char) || CharUtils.isDigit(char));
 
+        // Check if it is a keyword
         return this.recogniseKeyword(value);
     }
 
     recogniseKeyword(value) {
-        let keywords = Object.keys(TokenType).filter(key => TokenType[key].charAt(0).toLowerCase() === value.charAt(0));
+        // let keywords = Object.keys(TokenType).filter(key => TokenType[key].charAt(0).toLowerCase() === value.charAt(0));
 
         let column = this.column;
         this.column += value.length;
 
-        for (let keyword of keywords) {
+        for (let keyword of Keywords) {
+            // If the identifier is a keyword, return a Keyword token
             if (value == TokenType[keyword]) {
                 return new Token(TokenType[keyword], value, this.line, column, this.file)
             };
         }
 
+        // Otherwise return a normal Identifier token
         return new Token(TokenType.Identifier, value, this.line, column, this.file);
     }
 
     recogniseNumber() {
+        // Check if a valid number is entered
         let result = this.numberFSM.run(this);
 
         if (!result.recognised) {
@@ -190,17 +218,27 @@ module.exports = class {
         }
     }
 
+    // Gets the next character in the input
+    // RETURNS: character
     getChar() {
         return this.input.charAt(this.counter);
     }
 
+    // Look at the next character without moving the counter forward
+    // RETURNS: character
     lookAhead() {
         if (this.counter + 1 < this.len) return this.input.charAt(this.counter + 1);
         return null;
     }
 
+    // Remove unnecessary whitespace
+    // RETURNS: nothing
     skipWhiteSpace() {
-        while (this.counter < this.len && CharUtils.isWhitespace(this.getChar())) {
+        while (this.counter < this.len && (CharUtils.isWhitespace(this.getChar()) || CharUtils.isNewline(this.getChar()))) {
+            if (CharUtils.isNewline(this.getChar())) {
+                this.line++;
+                this.column = 0;
+            }
             this.counter++;
             this.column++;
         }

@@ -6,7 +6,7 @@ module.exports = class extends Expression {
         this.value = value;
     }
 
-    isIntegerLiteral() {
+    isNumberLiteral() {
         return true;
     }
 }

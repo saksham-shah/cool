@@ -25,7 +25,7 @@ module.exports = class extends AstBase {
         return false;
     }
 
-    isIntegerLiteral() {
+    isNumberLiteral() {
         return false;
     }
 

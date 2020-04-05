@@ -1,3 +1,4 @@
+// Token
 module.exports = class {
     constructor(type, value, line, column, file) {
         this.type = type;

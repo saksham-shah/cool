@@ -1,5 +1,6 @@
 var CharUtils = require('../utils/charutils');
 
+// Finite state machine used to detect valid numbers, strings etc
 module.exports = class FSM {
     constructor(initial, accepting, nextState) {
         this.initialState = initial;
@@ -7,15 +8,19 @@ module.exports = class FSM {
         this.nextStateFunc = nextState;
     }
 
+    // Finds a valid string
+    // RETURNS: { recognised: Boolean, value: string }
     run(lexer) {
         let currentState = this.initialState;
         let output = '';
         let nextState = '';
 
+        // While an invalid character is not found (and the input doesn't end)
         while (nextState != -1 && lexer.counter < lexer.len) {
             let char = lexer.getChar();
             nextState = this.nextStateFunc(currentState, char);
 
+            // If the character is valid, add it to the output
             if (nextState != -1) {
                 currentState = nextState;
                 output += char;
@@ -26,6 +31,7 @@ module.exports = class FSM {
         return { recognised: this.acceptingStates.includes(currentState), value: output };
     }
 
+    // Detects valid numbers (only integers right now)
     static buildNumberFSM() {
         return new FSM('Start', ['IntegerPart', 'DecimalPart'], (state, char) => {
             switch (state) {

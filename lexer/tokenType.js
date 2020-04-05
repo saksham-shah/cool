@@ -1,3 +1,4 @@
+// Possible tokens in Cool
 module.exports = {
     // Literals
     String: 'STRING',
@@ -39,6 +40,9 @@ module.exports = {
     If: 'if',
     Else: 'else',
     While: 'while',
+    For: 'for',
+
+    Undefined: 'AAAAA',
 
     // Special
     Newline: 'new line',
