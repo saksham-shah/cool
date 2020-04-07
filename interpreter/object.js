@@ -13,6 +13,9 @@ module.exports = class Obj {
             return this.properties.get(propName);
         }
 
+        return this.getFunction(propName);
+        
+
         return Obj.create(this.context, Types.Undefined);
     }
 
@@ -21,9 +24,13 @@ module.exports = class Obj {
     }
 
     static create(context, className) {
-        let klass = context.getClass(className);
+        // let klass = context.getClass(className);
 
-        if (klass == undefined) {
+        return new Obj(className, context);
+
+        // CLEANUP REQUIRED
+
+        // if (klass == undefined) {
             klass = context.environment.getValue(className);
 
             if (klass.type != Types.Class) {
@@ -31,7 +38,7 @@ module.exports = class Obj {
             }
 
             klass = klass.getProperty('.class');
-        }
+        // }
 
         let object;
         // console.log(className);
@@ -42,12 +49,12 @@ module.exports = class Obj {
             object = new Obj(className, context);
         }
 
-        klass.functions.forEach(func => {
-            //object.functions.set(func.name, func);
-            let funcObj = Obj.create(context, Types.Function);
-            funcObj.setProperty('.function', func);
-            object.setProperty(func.name, funcObj);
-        });
+        // klass.functions.forEach(func => {
+        //     //object.functions.set(func.name, func);
+        //     let funcObj = Obj.create(context, Types.Function);
+        //     funcObj.setProperty('.function', func);
+        //     object.setProperty(func.name, funcObj);
+        // });
 
         return object;
     }
@@ -57,10 +64,19 @@ module.exports = class Obj {
     // }
     
     getFunction(functionName) {
-        // if (this.functions.has(functionName)) {
-            return this.functions.get(functionName);
-        // }
+        let klass = this.context.environment.getValue(this.type);
+        klass = klass.getProperty('.class');
 
-        // return Obj.create(this.context, Types.Undefined);
+        let func = klass.getMethod(this.context, functionName);
+
+        if (func == undefined) {
+            return Obj.create(this.context, Types.Undefined);
+        }
+
+        let funcObj = Obj.create(this.context, Types.Function);
+        funcObj.setProperty('.name', func.name);
+        funcObj.setProperty('.function', func);
+
+        return funcObj;
     }
 }

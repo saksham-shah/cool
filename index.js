@@ -41,9 +41,9 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     // console.log(program.expressions[1]);
 
     let context = new Context();
-    context.addClass(new ObjectClass());
-    context.addClass(new ClassClass());
-    context.addClass(new FunctionClass());
+    // context.addClass(new ObjectClass());
+    // context.addClass(new ClassClass());
+    // context.addClass(new FunctionClass());
     // context.addClass(new IntClass());
     // context.addClass(new StringClass());
     // context.addClass(new UndefinedClass());

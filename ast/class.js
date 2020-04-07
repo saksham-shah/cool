@@ -1,4 +1,5 @@
 const Expression = require('./expression');
+// const Obj = require('../interpreter/object');
 
 module.exports = class extends Expression {
     constructor(name, superClass, properties = [], functions = [], statics = []) {
@@ -12,5 +13,23 @@ module.exports = class extends Expression {
 
     isClass() {
         return true;
+    }
+
+    getMethod(context, functionName) {
+        for (let func of this.functions) {
+            if (func.name == functionName) {
+                return func;
+            }
+        }
+
+        if (this.superClass == undefined) {
+            return undefined;
+        }
+
+        let superClass = context.environment.getValue(this.superClass);
+
+        klass = superClass.getProperty('.class');
+
+        return klass.getMethod(context, functionName);       
     }
 }

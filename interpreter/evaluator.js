@@ -67,7 +67,7 @@ module.exports = class {
             let obj = this.evaluate(context, assignment.object);
 
             if (obj.type == Types.Undefined) {
-                throw new Error(Report.error(`Cannot get property of undefined object`, assignment.line, assignment.column, assignment.file));
+                throw new Error(Report.error(`Cannot set property of undefined object`, assignment.line, assignment.column, assignment.file));
             }
 
             obj.setProperty(assignment.identifier, value);
@@ -113,6 +113,7 @@ module.exports = class {
 
     static evaluateFunction(context, func) {
         let funcObj = Obj.create(context, Types.Function);
+        funcObj.setProperty('.name', func.name);
         funcObj.setProperty('.function', func);
         return funcObj;
     }
@@ -123,6 +124,7 @@ module.exports = class {
         if (call.object != undefined) {
             object = this.evaluate(context, call.object);
             func = object.getProperty(call.name);
+            // func = object.getFunction(call.name);
         } else {
             object = context.self;
             func = context.environment.getValue(call.name);
@@ -196,7 +198,7 @@ module.exports = class {
             let obj = this.evaluate(context, reference.object);
 
             if (obj.type == Types.Undefined) {
-                throw new Error(Report.error(`Cannot set property of undefined object`, reference.line, reference.column, reference.file));
+                throw new Error(Report.error(`Cannot get property of undefined object`, reference.line, reference.column, reference.file));
             }
 
             value = obj.getProperty(reference.identifier);
