@@ -13,7 +13,7 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
-        this.functions.push(new Func('+', ['right'], new NativeExpression(context => {
+        this.functions.push(new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
             let result;
@@ -31,12 +31,15 @@ module.exports = class extends Class {
                     result = Obj.create(context, Types.String);
                     result.setProperty('.value', left.getProperty('.value'));
                     break;
+                default:
+                    err(`Invalid use of operator '+`);
+                    break;
             }
 
             return result;
         })));
 
-        this.functions.push(new Func('*', ['right'], new NativeExpression(context => {
+        this.functions.push(new Func('*', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
             let result;
@@ -54,6 +57,9 @@ module.exports = class extends Class {
                 case Types.Undefined:
                     result = Obj.create(context, Types.String);
                     result.setProperty('.value', left.getProperty('.value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '*'`);
                     break;
             }
 

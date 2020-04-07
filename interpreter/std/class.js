@@ -17,6 +17,6 @@ module.exports = class extends Class {
             let str = Obj.create(context, Types.String);
             str.setProperty('.value', '<class>' + context.self.getProperty('.name'));
             return str;
-        })))
+        })));
     }
 }

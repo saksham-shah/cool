@@ -185,7 +185,7 @@ module.exports = class {
     }
 
     static evaluateNativeExpression(context, expression) {
-        return expression.func(context);
+        return expression.func(context, Report.throwError);
     }
 
     static evaluateReference(context, reference) {

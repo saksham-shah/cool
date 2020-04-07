@@ -1,4 +1,4 @@
 extract Console
 
 x = "Hello world!"
-print(x + " " + x)
+print(Console)

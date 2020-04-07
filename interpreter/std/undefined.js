@@ -13,7 +13,7 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
-        this.functions.push(new Func('+', ['right'], new NativeExpression(context => {
+        this.functions.push(new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let result;
 
@@ -25,12 +25,19 @@ module.exports = class extends Class {
                 case Types.Undefined:
                     result = Obj.create(context, Types.Undefined);
                     break;
+                case Types.String:
+                    result = Obj.create(context, Types.String);
+                    result.setProperty('.value', right.getProperty('.value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '+'`);
+                    break;
             }
 
             return result;
         })));
 
-        this.functions.push(new Func('-', ['right'], new NativeExpression(context => {
+        this.functions.push(new Func('-', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let result;
 
@@ -42,12 +49,15 @@ module.exports = class extends Class {
                 case Types.Undefined:
                     result = Obj.create(context, Types.Undefined);
                     break;
+                default:
+                    err(`Invalid use of operator '-'`);
+                    break;
             }
 
             return result;
         })));
 
-        this.functions.push(new Func('*', ['right'], new NativeExpression(context => {
+        this.functions.push(new Func('*', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let result;
 
@@ -56,8 +66,15 @@ module.exports = class extends Class {
                     result = Obj.create(context, Types.Int);
                     result.setProperty('.value', right.getProperty('.value'));
                     break;
+                case Types.String:
+                    result = Obj.create(context, Types.String);
+                    result.setProperty('.value', right.getProperty('.value'));
+                    break;
                 case Types.Undefined:
                     result = Obj.create(context, Types.Undefined);
+                    break;
+                default:
+                    err(`Invalid use of operator '*'`);
                     break;
             }
 
