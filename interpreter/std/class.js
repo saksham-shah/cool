@@ -9,18 +9,14 @@ module.exports = class extends Class {
     constructor() {
         super();
 
-        this.name = Types.String;
+        this.name = Types.Class;
 
         this.superClass = Types.Object;
 
-        this.functions.push(new Func('length', [], new NativeExpression(context => {
-            let result = Obj.create(context, Types.Int);
-            result.setProperty('value', context.self.getProperty('value').length);
-            return result;
-        })))
-
         this.functions.push(new Func('toString', [], new NativeExpression(context => {
-            return context.self;
+            let str = Obj.create(context, Types.String);
+            str.setProperty('value', '<class>' + context.self.getProperty('name'));
+            return str;
         })))
     }
 }

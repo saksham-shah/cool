@@ -46,6 +46,6 @@ module.exports = class {
     }
 
     static isStringMark(char) {
-        return char === "\"" || char === "\'";
+        return char === "\"";// || char === "\'";
     }
 }

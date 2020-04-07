@@ -1,2 +1,4 @@
-print(x=1)
-print(x)
+extract Console
+
+x = "Hello world!"
+print(x.length())

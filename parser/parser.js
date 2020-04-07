@@ -1,13 +1,18 @@
 const Lexer = require('../lexer/lexer')
 const TokenType = require('../lexer/tokenType');
 
+// Expressions
 const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
 const FunctionCall = require('../ast/functioncall');
 const NumberLiteral = require('../ast/number');
 const Reference = require('../ast/reference');
+const StringLiteral = require('../ast/string');
 const UnaryExpression = require('../ast/unaryexpression');
+
+// Definitions
+const Extract = require('../ast/extract');
 
 const Report = require('../utils/report');
 
@@ -32,6 +37,9 @@ module.exports = class {
 
         if (this.isNext(TokenType.Number)) {
             value = new NumberLiteral(this.expect(TokenType.Number).value);
+
+        } else if (this.isNext(TokenType.String)) {
+            value = new StringLiteral(this.expect(TokenType.String).value);
 
         } else if (this.unaryOperatorIsNext()) {
             let operator = token.value;
@@ -70,11 +78,19 @@ module.exports = class {
         let token = this.currentToken;
 
         let expressions = [];
+        let definitions = [];
+
         while (!this.isNext(TokenType.Endofinput)) {
-            expressions.push(this.parseExpression());
+            let ast = this.parseAnything();
+            if (ast.isExpression()) {
+                expressions.push(ast);
+            } else {
+                definitions.push(ast);
+            }
+            // expressions.push(this.parseAnything());
         }
 
-        let block = new Block(expressions);
+        let block = new Block(expressions, definitions);
 
         block.copyLocation(token);
 
@@ -121,6 +137,26 @@ module.exports = class {
         return this.parseAddition();
     }
 
+    // Checks if a definition is next and parses appropriately
+    // RETURNS: Expression or Definition
+    parseAnything() {
+        let token = this.currentToken;
+        let value = null;
+        if (this.isNext(TokenType.Extract)) {
+            this.expect(TokenType.Extract);
+            let classToExtract = this.parseValue();
+            value = new Extract(classToExtract);
+        }
+
+        if (value == null) {
+            value = this.parseExpression();
+        } else {
+            value.copyLocation(token);
+        }
+
+        return value;
+    }
+
     // Currently the lowest priority operation
     // RETURNS: Expression
     parseAddition() {
@@ -131,18 +167,39 @@ module.exports = class {
     // The only thing higher up is parseValue which deals with things like brackets
     // RETURNS: Expression
     parseMultiplication() {
-        return this.parseBinaryExpression(this.multiplicationIsNext, this.parseValue);
+        return this.parseBinaryExpression(this.multiplicationIsNext, this.parseProperty);
+    }
+
+    parseProperty() {
+        let value = this.parseValue();
+
+        while(this.isNext(TokenType.Dot)) {
+            this.expect(TokenType.Dot);
+
+            let nextToken = this.lexer.lookahead();
+
+            // Parses according to the next token
+            if (nextToken.type == TokenType.Equal) {
+                value = this.parseAssignment(value);
+            } else if (nextToken.type == TokenType.OpenBracket) {
+                value = this.parseFunctionCall(value);
+            } else {
+                value = new Reference(this.expect(TokenType.Identifier).value, value);
+            }
+        }
+
+        return value;
     }
    
     // RETURNS: Assignment Expression
-    parseAssignment() {     
+    parseAssignment(object) {     
         let identifier = this.expect(TokenType.Identifier).value;
 
         let operator = this.currentToken.value;
 
         this.currentToken = this.lexer.nextToken();
 
-        return new Assignment(identifier, operator, this.parseExpression());
+        return new Assignment(identifier, operator, this.parseExpression(), object);
     }
 
     // RETURNS: Expression
@@ -157,12 +214,12 @@ module.exports = class {
     }
 
     // RETURNS: Function Call Expression
-    parseFunctionCall() {
+    parseFunctionCall(object) {
         let functionName = this.expect(TokenType.Identifier).value;
 
         let args = this.parseArguments();
 
-        let func = new FunctionCall(undefined, functionName, args);
+        let func = new FunctionCall(object, functionName, args);
 
         return func;
     }

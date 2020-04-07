@@ -1,13 +1,12 @@
 const Expression = require('./expression');
 
 module.exports = class extends Expression {
-    constructor(expressions, definitions) {
+    constructor(value) {
         super();
-        this.expressions = expressions;
-        this.definitions = definitions;
+        this.value = value;
     }
 
-    isBlock() {
+    isStringLiteral() {
         return true;
     }
 }

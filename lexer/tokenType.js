@@ -42,7 +42,9 @@ module.exports = {
     While: 'while',
     For: 'for',
 
-    Undefined: 'AAAAA',
+    Undefined: 'Undefined',
+
+    Extract: 'extract',
 
     // Special
     Newline: 'new line',

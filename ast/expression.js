@@ -21,6 +21,14 @@ module.exports = class extends AstBase {
         return false;
     }
 
+    isClass() {
+        return false;
+    }
+
+    isFunction() {
+        return false;
+    }
+
     isFunctionCall() {
         return false;
     }
@@ -34,6 +42,10 @@ module.exports = class extends AstBase {
     }
 
     isReference() {
+        return false;
+    }
+
+    isStringLiteral() {
         return false;
     }
 

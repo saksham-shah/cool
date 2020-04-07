@@ -23,8 +23,18 @@ module.exports = class Obj {
     static create(context, className) {
         let klass = context.getClass(className);
 
-        let object;
+        if (klass == undefined) {
+            klass = context.environment.getValue(className);
 
+            if (klass.type != Types.Class) {
+                throw new Error(Report.error(`${call.name} is not a class`, call.line, call.column, call.file));
+            }
+
+            klass = klass.getProperty('class');
+        }
+
+        let object;
+        // console.log(className);
         if (klass.superClass !== undefined) {
             object = Obj.create(context, klass.superClass);
             object.type = className;
@@ -33,7 +43,10 @@ module.exports = class Obj {
         }
 
         klass.functions.forEach(func => {
-            object.functions.set(func.name, func);
+            //object.functions.set(func.name, func);
+            let funcObj = Obj.create(context, Types.Function);
+            funcObj.setProperty('function', func);
+            object.setProperty(func.name, funcObj);
         });
 
         return object;

@@ -25,6 +25,14 @@ module.exports = class {
             return this.evaluateBlock(context, expression);
         }
 
+        if (expression.isClass()) {
+            return this.evaluateClass(context, expression);
+        }
+
+        if (expression.isFunction()) {
+            return this.evaluateFunction(context, expression);
+        }
+
         if (expression.isFunctionCall()) {
             return this.evaluateFunctionCall(context, expression);
         }
@@ -41,6 +49,10 @@ module.exports = class {
             return this.evaluateReference(context, expression);
         }
 
+        if (expression.isStringLiteral()) {
+            return this.evaluateStringLiteral(context, expression);
+        }
+
         if (expression.isUnaryExpression()) {
             return this.evaluateUnaryExpression(context, expression);
         }
@@ -49,7 +61,17 @@ module.exports = class {
     static evaluateAssignment(context, assignment) {
         let value = this.evaluate(context, assignment.value);
 
-        context.environment.setValue(assignment.identifier, value);
+        if (assignment.object == undefined) {
+            context.environment.setValue(assignment.identifier, value);
+        } else {
+            let obj = this.evaluate(context, assignment.object);
+
+            if (obj.type == Types.Undefined) {
+                throw new Error(Report.error(`Cannot get property of undefined object`, assignment.line, assignment.column, assignment.file));
+            }
+
+            obj.setProperty(assignment.identifier, value);
+        }
 
         return value;
     }
@@ -65,6 +87,10 @@ module.exports = class {
 
         context.environment.enterScope();
 
+        for (let definition of block.definitions) {
+            this.define(context, definition);
+        }
+
         for (let expression of block.expressions) {
             latest = this.evaluate(context, expression);
         }
@@ -74,30 +100,49 @@ module.exports = class {
         return latest;
     }
 
+    static evaluateClass(context, klass) {
+        let classObj = Obj.create(context, Types.Class);
+        classObj.setProperty('name', klass.name);
+        classObj.setProperty('class', klass);
+        for (let func of klass.statics) {
+            let funcObj = this.evaluateFunction(context, func);
+            classObj.setProperty(func.name, funcObj);
+        }
+        return classObj;
+    }
+
+    static evaluateFunction(context, func) {
+        let funcObj = Obj.create(context, Types.Function);
+        funcObj.setProperty('function', func);
+        return funcObj;
+    }
+
     static evaluateFunctionCall(context, call) {
         let object, func;
 
         if (call.object != undefined) {
             object = this.evaluate(context, call.object);
-            func = object.getFunction(call.name);
+            console.log(call.object);
+            func = object.getProperty(call.name);
         } else {
             object = context.self;
             func = context.environment.getValue(call.name);
         }
 
         // Very messy code, need to standardise this rather than use awkward if statements
-        if (func == undefined) {
-            throw new Error(Report.error(`Function '${call.name}' does not exist in current scope`, call.line, call.column, call.file));
-        }
+        // if (func == undefined) {
+        //     throw new Error(Report.error(`Function '${call.name}' does not exist in current scope`, call.line, call.column, call.file));
+        // }
 
         if (func instanceof Obj) {
             if (func.type != Types.Function) {
-                console.log(func);
                 throw new Error(Report.error(`${call.name} is not a function`, call.line, call.column, call.file));
             }
 
             func = func.getProperty('function');
-        } 
+        } else {
+            console.log('something is very wrong line 111 evaluator.js')
+        }
 
         return this.evaluateFunctionCallImpl(context, object, func, call);
     }
@@ -145,7 +190,18 @@ module.exports = class {
     }
 
     static evaluateReference(context, reference) {
-        let value = context.environment.getValue(reference.identifier);
+        let value;
+        if (reference.object == undefined) {
+            value = context.environment.getValue(reference.identifier);
+        } else {
+            let obj = this.evaluate(context, reference.object);
+
+            if (obj.type == Types.Undefined) {
+                throw new Error(Report.error(`Cannot set property of undefined object`, reference.line, reference.column, reference.file));
+            }
+
+            value = obj.getProperty(reference.identifier);
+        }
 
         if (value instanceof Expression) {
             value = this.evaluate(context, value);
@@ -154,8 +210,35 @@ module.exports = class {
         return value;
     }
 
+    static evaluateStringLiteral(context, string) {
+        let obj = Obj.create(context, Types.String);
+        obj.setProperty('value', string.value);
+        return obj;
+    }
+
     static evaluateUnaryExpression(context, expression) {
         let call = new FunctionCall(expression.expression, 'unary_' + expression.operator);
         return this.evaluateFunctionCall(context, call);
+    }
+
+    static define(context, definition) {
+        if (definition.isExtract()) {
+            this.defineExtract(context, definition);
+        }
+    }
+
+    static defineExtract(context, extract) {
+        let klass = this.evaluate(context, extract.klass);
+
+        if (klass.type != Types.Class) {
+            throw new Error(Report.error(`Extract must refer to a class in the current context`, extract.line, extract.column, extract.file));
+        }
+
+        klass = klass.getProperty('class');
+
+        for (let func of klass.statics) {
+            let funcObj = this.evaluateFunction(context, func);
+            context.environment.setValue(func.name, funcObj);
+        }
     }
 }

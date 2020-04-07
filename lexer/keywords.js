@@ -3,5 +3,6 @@ module.exports = [
     'True', 'False',
     'And', 'Or',
     'End', 'If', 'Else', 'While', 'For',
-    'Undefined'
+    'Undefined',
+    'Extract'
 ]

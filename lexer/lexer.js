@@ -23,6 +23,8 @@ module.exports = class {
 
         // Finite state machine which detects whether a number format is valid
         this.numberFSM = FSM.buildNumberFSM();
+        // Finite state machine which detects whether a string format is valid
+        this.stringFSM = FSM.buildStringFSM();
     }
 
     // Generates all tokens for the input - currently unused
@@ -86,6 +88,10 @@ module.exports = class {
             return this.recogniseNumber();
         }
 
+        if (CharUtils.isStringMark(char)) {
+            return this.recogniseString();
+        }
+
         if (CharUtils.isOperator(char)) {
             return this.recogniseOperator(char);
         }
@@ -94,8 +100,8 @@ module.exports = class {
             return this.recogniseBracket(char);
         }
 
-        if (CharUtils.isComma(char)) {
-            return this.recogniseComma(char);
+        if (CharUtils.isDot(char) || CharUtils.isComma(char)) {
+            return this.recogniseDotOrComma(char);
         }
 
         // if (CharUtils.isNewline(char)) {
@@ -171,6 +177,20 @@ module.exports = class {
         return new Token(TokenType.Number, Number(result.value), this.line, column, this.file);
     }
 
+    recogniseString() {
+        // Check if a valid number is entered
+        let result = this.stringFSM.run(this);
+
+        if (!result.recognised) {
+            throw new Error(Report.error(`Invalid string ${result.value}`, this.line, this.column, this.file));
+        }
+
+        let column = this.column;
+        this.column += result.value.length;
+
+        return new Token(TokenType.String, result.value.substr(1, result.value.length - 2), this.line, column, this.file);
+    }
+
     recogniseOperator(char) {
         this.counter++;
         this.column++;
@@ -209,9 +229,13 @@ module.exports = class {
         }
     }
 
-    recogniseComma(char) {
+    recogniseDotOrComma(char) {
         this.counter ++;
         this.column++;
+
+        if (char === '.') {
+            return new Token(TokenType.Dot, '.', this.line, this.column - 1, this.file);
+        }
 
         if (char === ',') {
             return new Token(TokenType.Comma, ',', this.line, this.column - 1, this.file);

@@ -4,5 +4,8 @@ module.exports = {
     Int: 'Int',
     Undefined: 'Undefined',
     Function: 'Function',
-    Class: 'Class'
+    Class: 'Class',
+    String: 'String',
+    Console: 'Console',
+    Math: 'Math'
 }

@@ -14,10 +14,12 @@ const Obj = require('./interpreter/object');
 const Types = require('./types/types');
 
 const ObjectClass = require('./interpreter/std/obj');
+const ClassClass = require('./interpreter/std/class');
 const FunctionClass = require('./interpreter/std/func');
 const IntClass = require('./interpreter/std/int');
 const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
+const ConsoleClass = require('./interpreter/std/console');
 
 let codeText;
 
@@ -36,28 +38,39 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program);
+    // console.log(program.expressions[1]);
 
     let context = new Context();
     context.addClass(new ObjectClass());
+    context.addClass(new ClassClass());
     context.addClass(new FunctionClass());
-    context.addClass(new IntClass());
-    context.addClass(new StringClass());
-    context.addClass(new UndefinedClass());
+    // context.addClass(new IntClass());
+    // context.addClass(new StringClass());
+    // context.addClass(new UndefinedClass());
 
     context.defaultSelf();
 
     context.environment.enterScope();
 
-    context.addFunction(new Func('print', ['obj'], new NativeExpression(context => {
-        let call = new FunctionCall(new Reference('obj'), 'toString');
+    addClass(context, new ObjectClass());
+    addClass(context, new ClassClass());
+    addClass(context, new UndefinedClass());
+    addClass(context, new FunctionClass());
+    addClass(context, new IntClass());
+    addClass(context, new StringClass());
+    addClass(context, new ConsoleClass());
 
-        let str = Evaluator.evaluate(context, call);
+    // console.log(context);
 
-        console.log(str.getProperty('value'));
+    // context.addFunction(new Func('print', ['obj'], new NativeExpression(context => {
+    //     let call = new FunctionCall(new Reference('obj'), 'toString');
 
-        return context.environment.getValue('obj');
-    })))
+    //     let str = Evaluator.evaluate(context, call);
+
+    //     console.log(str.getProperty('value'));
+
+    //     return context.environment.getValue('obj');
+    // })))
 
     let result = Evaluator.evaluate(context, program);
 
@@ -69,3 +82,8 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     //console.log(result);
 });
 
+function addClass(context, klass) {
+    // context.addClass(klass);
+    let classObj = Evaluator.evaluateClass(context, klass);
+    context.environment.setValue(klass.name, classObj);
+}

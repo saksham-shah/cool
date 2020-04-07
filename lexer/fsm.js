@@ -47,4 +47,22 @@ module.exports = class FSM {
             return -1;
         });
     }
+
+    // Detects valid strings
+    static buildStringFSM() {
+        return new FSM('Start', ['End'], (state, char) => {
+            switch (state) {
+                case 'Start':
+                    if (CharUtils.isStringMark(char)) return 'Main';
+                    break;
+
+                case 'Main':
+                    if (CharUtils.isStringMark(char)) return 'End'
+                    return 'Main';
+                    break;
+            }
+
+            return -1;
+        });
+    }
 }

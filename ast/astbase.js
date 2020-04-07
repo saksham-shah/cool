@@ -10,4 +10,12 @@ module.exports = class {
         this.column = otherBase.column;
         this.file = otherBase.file;
     }
+
+    isDefinition() {
+        return false;
+    }
+
+    isExpression() {
+        return false;
+    }
 }

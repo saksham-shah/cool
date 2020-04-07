@@ -9,11 +9,7 @@ module.exports = class extends AstBase {
         return true;
     }
 
-    isClass() {
-        return false;
-    }
-
-    isFunction() {
+    isExtract() {
         return false;
     }
 }

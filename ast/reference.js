@@ -1,9 +1,10 @@
 const Expression = require('./expression');
 
 module.exports = class extends Expression {
-    constructor(identifier) {
+    constructor(identifier, object) {
         super();
         this.identifier = identifier;
+        this.object = object;
     }
 
     isReference() {

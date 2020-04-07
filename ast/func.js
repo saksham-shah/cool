@@ -1,6 +1,6 @@
-const Definition = require('./definition');
+const Expression = require('./expression');
 
-module.exports = class extends Definition {
+module.exports = class extends Expression {
     constructor(name, params, body) {
         super();
         this.name = name;
