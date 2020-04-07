@@ -15,7 +15,7 @@ module.exports = class extends Class {
 
         this.functions.push(new Func('toString', [], new NativeExpression(context => {
             let str = Obj.create(context, Types.String);
-            str.setProperty('value', '<class>' + context.self.getProperty('name'));
+            str.setProperty('.value', '<class>' + context.self.getProperty('.name'));
             return str;
         })))
     }

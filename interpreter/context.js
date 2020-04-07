@@ -25,7 +25,7 @@ module.exports = class {
 
     addFunction(func) {
         let value = Obj.create(this, Types.Function);
-        value.setProperty('function', func);
+        value.setProperty('.function', func);
         this.environment.setValue(func.name, value);
     }
 

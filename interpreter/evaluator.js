@@ -102,8 +102,8 @@ module.exports = class {
 
     static evaluateClass(context, klass) {
         let classObj = Obj.create(context, Types.Class);
-        classObj.setProperty('name', klass.name);
-        classObj.setProperty('class', klass);
+        classObj.setProperty('.name', klass.name);
+        classObj.setProperty('.class', klass);
         for (let func of klass.statics) {
             let funcObj = this.evaluateFunction(context, func);
             classObj.setProperty(func.name, funcObj);
@@ -113,7 +113,7 @@ module.exports = class {
 
     static evaluateFunction(context, func) {
         let funcObj = Obj.create(context, Types.Function);
-        funcObj.setProperty('function', func);
+        funcObj.setProperty('.function', func);
         return funcObj;
     }
 
@@ -122,7 +122,6 @@ module.exports = class {
 
         if (call.object != undefined) {
             object = this.evaluate(context, call.object);
-            console.log(call.object);
             func = object.getProperty(call.name);
         } else {
             object = context.self;
@@ -139,7 +138,7 @@ module.exports = class {
                 throw new Error(Report.error(`${call.name} is not a function`, call.line, call.column, call.file));
             }
 
-            func = func.getProperty('function');
+            func = func.getProperty('.function');
         } else {
             console.log('something is very wrong line 111 evaluator.js')
         }
@@ -181,7 +180,7 @@ module.exports = class {
 
     static evaluateNumberLiteral(context, number) {
         let obj = Obj.create(context, Types.Int);
-        obj.setProperty('value', number.value);
+        obj.setProperty('.value', number.value);
         return obj;
     }
 
@@ -212,7 +211,7 @@ module.exports = class {
 
     static evaluateStringLiteral(context, string) {
         let obj = Obj.create(context, Types.String);
-        obj.setProperty('value', string.value);
+        obj.setProperty('.value', string.value);
         return obj;
     }
 
@@ -234,7 +233,7 @@ module.exports = class {
             throw new Error(Report.error(`Extract must refer to a class in the current context`, extract.line, extract.column, extract.file));
         }
 
-        klass = klass.getProperty('class');
+        klass = klass.getProperty('.class');
 
         for (let func of klass.statics) {
             let funcObj = this.evaluateFunction(context, func);

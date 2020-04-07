@@ -21,11 +21,15 @@ module.exports = class extends Class {
             switch (right.type) {
                 case Types.Int:
                     result = Obj.create(context, Types.Int);
-                    result.setProperty('value', left.getProperty('value') + right.getProperty('value'));
+                    result.setProperty('.value', left.getProperty('.value') + right.getProperty('.value'));
+                    break;
+                case Types.String:
+                    result = Obj.create(context, Types.String);
+                    result.setProperty('.value', left.getProperty('.value') + right.getProperty('.value'));
                     break;
                 case Types.Undefined:
                     result = Obj.create(context, Types.Int);
-                    result.setProperty('value', left.getProperty('value'));
+                    result.setProperty('.value', left.getProperty('.value'));
                     break;
             }
 
@@ -40,11 +44,11 @@ module.exports = class extends Class {
             switch (right.type) {
                 case Types.Int:
                     result = Obj.create(context, Types.Int);
-                    result.setProperty('value', left.getProperty('value') - right.getProperty('value'));
+                    result.setProperty('.value', left.getProperty('.value') - right.getProperty('.value'));
                     break;
                 case Types.Undefined:
                     result = Obj.create(context, Types.Int);
-                    result.setProperty('value', left.getProperty('value'));
+                    result.setProperty('.value', left.getProperty('.value'));
                     break;
             }
 
@@ -59,26 +63,39 @@ module.exports = class extends Class {
             switch (right.type) {
                 case Types.Int:
                     result = Obj.create(context, Types.Int);
-                    result.setProperty('value', left.getProperty('value') * right.getProperty('value'));
+                    result.setProperty('.value', left.getProperty('.value') * right.getProperty('.value'));
+                    break;
+                case Types.String:
+                    result = Obj.create(context, Types.String);
+                    let str = '';
+                    let substr = right.getProperty('.value');
+                    for (var i = 0; i < left.getProperty('.value'); i++) {
+                        str += substr;
+                    }
+                    result.setProperty('.value', str);
                     break;
                 case Types.Undefined:
                     result = Obj.create(context, Types.Int);
-                    result.setProperty('value', left.getProperty('value'));
+                    result.setProperty('.value', left.getProperty('.value'));
                     break;
             }
 
             return result;
         })));
 
+        this.functions.push(new Func('unary_+', [], new NativeExpression(context => {
+            return context.self;
+        })));
+
         this.functions.push(new Func('unary_-', [], new NativeExpression(context => {
             let result = Obj.create(context, Types.Int);
-            result.setProperty('value', -context.self.getProperty('value'));
+            result.setProperty('.value', -context.self.getProperty('.value'));
             return result;
         })));
 
         this.functions.push(new Func('toString', [], new NativeExpression(context => {
             let str = Obj.create(context, Types.String);
-            str.setProperty('value', context.self.getProperty('value'));
+            str.setProperty('.value', context.self.getProperty('.value'));
             return str;
         })))
     }

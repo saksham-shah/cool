@@ -30,7 +30,7 @@ module.exports = class Obj {
                 throw new Error(Report.error(`${call.name} is not a class`, call.line, call.column, call.file));
             }
 
-            klass = klass.getProperty('class');
+            klass = klass.getProperty('.class');
         }
 
         let object;
@@ -45,7 +45,7 @@ module.exports = class Obj {
         klass.functions.forEach(func => {
             //object.functions.set(func.name, func);
             let funcObj = Obj.create(context, Types.Function);
-            funcObj.setProperty('function', func);
+            funcObj.setProperty('.function', func);
             object.setProperty(func.name, funcObj);
         });
 

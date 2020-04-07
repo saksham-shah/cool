@@ -22,7 +22,7 @@ module.exports = class extends Class {
     
             let str = Evaluator.evaluate(context, call);
     
-            console.log(str.getProperty('value'));
+            console.log(str.getProperty('.value'));
     
             return context.environment.getValue('obj');
         })));
