@@ -144,7 +144,7 @@ module.exports = class {
         let value = null;
         if (this.isNext(TokenType.Extract)) {
             this.expect(TokenType.Extract);
-            let classToExtract = this.parseValue();
+            let classToExtract = this.parseProperty();
             value = new Extract(classToExtract);
         }
 
@@ -163,13 +163,16 @@ module.exports = class {
         return this.parseBinaryExpression(this.additionIsNext, this.parseMultiplication);
     }
 
-    // Currently the highest priority operation
-    // The only thing higher up is parseValue which deals with things like brackets
+    // Similar to addition
     // RETURNS: Expression
     parseMultiplication() {
         return this.parseBinaryExpression(this.multiplicationIsNext, this.parseProperty);
     }
 
+    // Currently the highest priority operation
+    // Handles dots - e.g. Console.print
+    // The only thing higher up is parseValue which deals with things like brackets
+    // RETURNS: Expression
     parseProperty() {
         let value = this.parseValue();
 

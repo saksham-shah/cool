@@ -2,7 +2,7 @@ const Expression = require('./expression');
 // const Obj = require('../interpreter/object');
 
 module.exports = class extends Expression {
-    constructor(name, superClass, properties = [], functions = [], statics = []) {
+    constructor(name, superClass, properties = [], functions = new Map(), statics = new Map()) {
         super();
         this.name = name;
         this.superClass = superClass;
@@ -16,10 +16,14 @@ module.exports = class extends Expression {
     }
 
     getMethod(context, functionName) {
-        for (let func of this.functions) {
-            if (func.name == functionName) {
-                return func;
-            }
+        // for (let func of this.functions) {
+        //     if (func.name == functionName) {
+        //         return func;
+        //     }
+        // }
+
+        for (let [name, func] of this.functions) {
+            if (name == functionName) return func;
         }
 
         if (this.superClass == undefined) {
@@ -28,7 +32,7 @@ module.exports = class extends Expression {
 
         let superClass = context.environment.getValue(this.superClass);
 
-        klass = superClass.getProperty('.class');
+        let klass = superClass.getProperty('.class');
 
         return klass.getMethod(context, functionName);       
     }

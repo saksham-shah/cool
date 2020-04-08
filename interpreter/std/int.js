@@ -13,7 +13,7 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
-        this.functions.push(new Func('+', ['right'], new NativeExpression((context, err) => {
+        this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
             let result;
@@ -39,7 +39,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.push(new Func('-', ['right'], new NativeExpression((context, err) => {
+        this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
             let result;
@@ -61,7 +61,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.push(new Func('*', ['right'], new NativeExpression((context, err) => {
+        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
             let result;
@@ -92,17 +92,17 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.push(new Func('unary_+', [], new NativeExpression(context => {
+        this.functions.set('unary_+', new Func('unary_+', [], new NativeExpression(context => {
             return context.self;
         })));
 
-        this.functions.push(new Func('unary_-', [], new NativeExpression(context => {
+        this.functions.set('unary_-', new Func('unary_-', [], new NativeExpression(context => {
             let result = Obj.create(context, Types.Int);
             result.setProperty('.value', -context.self.getProperty('.value'));
             return result;
         })));
 
-        this.functions.push(new Func('toString', [], new NativeExpression(context => {
+        this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             let str = Obj.create(context, Types.String);
             str.setProperty('.value', context.self.getProperty('.value'));
             return str;

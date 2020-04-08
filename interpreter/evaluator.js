@@ -102,18 +102,22 @@ module.exports = class {
 
     static evaluateClass(context, klass) {
         let classObj = Obj.create(context, Types.Class);
-        classObj.setProperty('.name', klass.name);
+        classObj.setProperty('.name', klass.name != undefined ? klass.name : '[Anonymous]');
         classObj.setProperty('.class', klass);
-        for (let func of klass.statics) {
-            let funcObj = this.evaluateFunction(context, func);
-            classObj.setProperty(func.name, funcObj);
+        for (let [name, expression] of klass.statics) {
+            // let funcObj = this.evaluateFunction(context, func);
+            // classObj.setProperty(func.name, funcObj);
+
+            let obj = this.evaluate(context, expression);
+            classObj.setProperty(name, obj);
         }
+        
         return classObj;
     }
 
     static evaluateFunction(context, func) {
         let funcObj = Obj.create(context, Types.Function);
-        funcObj.setProperty('.name', func.name);
+        funcObj.setProperty('.name', func.name != undefined ? func.name : '[Anonymous]');
         funcObj.setProperty('.function', func);
         return funcObj;
     }
@@ -124,10 +128,17 @@ module.exports = class {
         if (call.object != undefined) {
             object = this.evaluate(context, call.object);
             func = object.getProperty(call.name);
-            // func = object.getFunction(call.name);
+
+            if (func.type != Types.Function) {
+                throw new Error(Report.error(`${call.name} is not a method of the ${object.type} class`, call.line, call.column, call.file));
+            }
         } else {
             object = context.self;
             func = context.environment.getValue(call.name);
+
+            if (func.type != Types.Function) {
+                throw new Error(Report.error(`${call.name} is not a function in the current scope`, call.line, call.column, call.file));
+            }
         }
 
         // Very messy code, need to standardise this rather than use awkward if statements
@@ -136,13 +147,11 @@ module.exports = class {
         // }
 
         if (func instanceof Obj) {
-            if (func.type != Types.Function) {
-                throw new Error(Report.error(`${call.name} is not a function`, call.line, call.column, call.file));
-            }
+            
 
             func = func.getProperty('.function');
         } else {
-            console.log('something is very wrong line 111 evaluator.js')
+            console.log('something is very wrong line 145 evaluator.js')
         }
 
         return this.evaluateFunctionCallImpl(context, object, func, call);
@@ -235,11 +244,15 @@ module.exports = class {
             throw new Error(Report.error(`Extract must refer to a class in the current context`, extract.line, extract.column, extract.file));
         }
 
-        klass = klass.getProperty('.class');
+        // klass = klass.getProperty('.class');
 
-        for (let func of klass.statics) {
-            let funcObj = this.evaluateFunction(context, func);
-            context.environment.setValue(func.name, funcObj);
+        // for (let func of klass.statics) {
+        //     let funcObj = this.evaluateFunction(context, func);
+        //     context.environment.setValue(func.name, funcObj);
+        // }
+        let keyValuePairs = klass.getKeysOrValues();
+        for (let pair of keyValuePairs) {
+            context.environment.setValue(pair[0], pair[1]);
         }
     }
 }

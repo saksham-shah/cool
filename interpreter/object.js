@@ -23,6 +23,22 @@ module.exports = class Obj {
         this.properties.set(propName, value);
     }
 
+    getKeysOrValues(mode) {
+        let returnVal = []
+        for (let [propName, value] of this.properties) {
+            if (propName[0] != '.') {
+                if (mode == 'key') {
+                    returnVal.push(propName);
+                } else if (mode == 'value') {
+                    returnVal.push(value);
+                } else {
+                    returnVal.push([propName, value]);
+                }
+            }
+        }
+        return returnVal;
+    }
+
     static create(context, className) {
         // let klass = context.getClass(className);
 

@@ -1,4 +1,6 @@
+Console.test = 4
 extract Console
 
-x = "test"
-print(print)
+
+
+print(test)
