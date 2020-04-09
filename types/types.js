@@ -1,9 +1,10 @@
 // Built-in data types in Cool
 module.exports = {
     Object: 'Object',
-    Int: 'Int',
+    Number: 'Number',
     Undefined: 'Undefined',
     Function: 'Function',
+    Bool: 'Boolean',
     Class: 'Class',
     String: 'String',
     Console: 'Console',

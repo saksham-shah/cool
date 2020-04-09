@@ -218,7 +218,7 @@ module.exports = class {
 
     // RETURNS: Number Obj
     static evaluateNumberLiteral(context, number) {
-        let obj = Obj.create(context, Types.Int);
+        let obj = Obj.create(context, Types.Number);
         obj.setProperty('.value', number.value);
         return obj;
     }

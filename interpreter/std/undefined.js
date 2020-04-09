@@ -20,14 +20,14 @@ module.exports = class extends Class {
             let right = context.environment.getValue('right');
             // let result;
 
-            if (right.type == Types.Int || right.type == Types.String || right.type == Types.Undefined) {
+            if (right.type == Types.Number || right.type == Types.String || right.type == Types.Undefined) {
                 return right;
             }
             err(`Invalid use of operator '*'`);
 
             // switch (right.type) {
-            //     case Types.Int:
-            //         result = Obj.create(context, Types.Int);
+            //     case Types.Number:
+            //         result = Obj.create(context, Types.Number);
             //         result.setProperty('.value', right.getProperty('.value'));
             //         break;
             //     case Types.Undefined:
@@ -50,8 +50,8 @@ module.exports = class extends Class {
             let result;
 
             switch (right.type) {
-                case Types.Int:
-                    result = Obj.create(context, Types.Int);
+                case Types.Number:
+                    result = Obj.create(context, Types.Number);
                     result.setProperty('.value', -right.getProperty('.value'));
                     break;
                 case Types.Undefined:
@@ -69,15 +69,15 @@ module.exports = class extends Class {
             let right = context.environment.getValue('right');
             // let result;
 
-            if (right.type == Types.Int || right.type == Types.String || right.type == Types.Undefined) {
+            if (right.type == Types.Number || right.type == Types.String || right.type == Types.Undefined) {
                 return right;
             }
             err(`Invalid use of operator '*'`);
 
 
             // switch (right.type) {
-            //     case Types.Int:
-            //         result = Obj.create(context, Types.Int);
+            //     case Types.Number:
+            //         result = Obj.create(context, Types.Number);
             //         result.setProperty('.value', right.getProperty('.value'));
             //         break;
             //     case Types.String:

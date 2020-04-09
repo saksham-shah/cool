@@ -5,18 +5,10 @@ const Evaluator = require('./interpreter/evaluator');
 
 const Context = require('./interpreter/context');
 
-const Func = require('./ast/func');
-const FunctionCall = require('./ast/functioncall');
-const NativeExpression = require('./ast/nativeexpression');
-const Reference = require('./ast/reference');
-
-const Obj = require('./interpreter/object');
-const Types = require('./types/types');
-
 const ObjectClass = require('./interpreter/std/obj');
 const ClassClass = require('./interpreter/std/class');
 const FunctionClass = require('./interpreter/std/func');
-const IntClass = require('./interpreter/std/int');
+const NumberClass = require('./interpreter/std/number');
 const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
 const ConsoleClass = require('./interpreter/std/console');
@@ -56,7 +48,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     addClass(context, new ClassClass());
     addClass(context, new UndefinedClass());
     addClass(context, new FunctionClass());
-    addClass(context, new IntClass());
+    addClass(context, new NumberClass());
     addClass(context, new StringClass());
     addClass(context, new ConsoleClass());
 

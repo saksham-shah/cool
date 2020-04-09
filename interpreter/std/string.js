@@ -20,7 +20,7 @@ module.exports = class extends Class {
             let result;
 
             switch (right.type) {
-                case Types.Int:
+                case Types.Number:
                     result = Obj.create(context, Types.String);
                     result.setProperty('.value', left.getProperty('.value') + right.getProperty('.value'));
                     break;
@@ -46,7 +46,7 @@ module.exports = class extends Class {
             let result;
 
             switch (right.type) {
-                case Types.Int:
+                case Types.Number:
                     // Repeats the string a specified number of times
                     result = Obj.create(context, Types.String);
                     let str = '';
@@ -70,7 +70,7 @@ module.exports = class extends Class {
 
         // The length of the string
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
-            let result = Obj.create(context, Types.Int);
+            let result = Obj.create(context, Types.Number);
             result.setProperty('.value', context.self.getProperty('.value').length);
             return result;
         })));
