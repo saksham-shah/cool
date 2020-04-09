@@ -5,6 +5,7 @@ const NativeExpression = require('../../ast/nativeexpression');
 const Obj = require('../object');
 const Types = require('../../types/types');
 
+// Very meta - the Class Class extending from Class
 module.exports = class extends Class {
     constructor() {
         super();

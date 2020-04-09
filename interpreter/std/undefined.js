@@ -5,6 +5,7 @@ const NativeExpression = require('../../ast/nativeexpression');
 const Obj = require('../object');
 const Types = require('../../types/types');
 
+// Undefined Class - used for all errors and is the most unique thing about Cool
 module.exports = class extends Class {
     constructor() {
         super();
@@ -13,28 +14,35 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
+        // Simply returns the other object - does not change the object at all
+        // Same for the other operators
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
-            let result;
+            // let result;
 
-            switch (right.type) {
-                case Types.Int:
-                    result = Obj.create(context, Types.Int);
-                    result.setProperty('.value', right.getProperty('.value'));
-                    break;
-                case Types.Undefined:
-                    result = Obj.create(context, Types.Undefined);
-                    break;
-                case Types.String:
-                    result = Obj.create(context, Types.String);
-                    result.setProperty('.value', right.getProperty('.value'));
-                    break;
-                default:
-                    err(`Invalid use of operator '+'`);
-                    break;
+            if (right.type == Types.Int || right.type == Types.String || right.type == Types.Undefined) {
+                return right;
             }
+            err(`Invalid use of operator '*'`);
 
-            return result;
+            // switch (right.type) {
+            //     case Types.Int:
+            //         result = Obj.create(context, Types.Int);
+            //         result.setProperty('.value', right.getProperty('.value'));
+            //         break;
+            //     case Types.Undefined:
+            //         result = Obj.create(context, Types.Undefined);
+            //         break;
+            //     case Types.String:
+            //         result = Obj.create(context, Types.String);
+            //         result.setProperty('.value', right.getProperty('.value'));
+            //         break;
+            //     default:
+            //         err(`Invalid use of operator '+'`);
+            //         break;
+            // }
+
+            // return result;
         })));
 
         this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
@@ -59,33 +67,40 @@ module.exports = class extends Class {
 
         this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
-            let result;
+            // let result;
 
-            switch (right.type) {
-                case Types.Int:
-                    result = Obj.create(context, Types.Int);
-                    result.setProperty('.value', right.getProperty('.value'));
-                    break;
-                case Types.String:
-                    result = Obj.create(context, Types.String);
-                    result.setProperty('.value', right.getProperty('.value'));
-                    break;
-                case Types.Undefined:
-                    result = Obj.create(context, Types.Undefined);
-                    break;
-                default:
-                    err(`Invalid use of operator '*'`);
-                    break;
+            if (right.type == Types.Int || right.type == Types.String || right.type == Types.Undefined) {
+                return right;
             }
+            err(`Invalid use of operator '*'`);
 
-            return result;
+
+            // switch (right.type) {
+            //     case Types.Int:
+            //         result = Obj.create(context, Types.Int);
+            //         result.setProperty('.value', right.getProperty('.value'));
+            //         break;
+            //     case Types.String:
+            //         result = Obj.create(context, Types.String);
+            //         result.setProperty('.value', right.getProperty('.value'));
+            //         break;
+            //     case Types.Undefined:
+            //         result = Obj.create(context, Types.Undefined);
+            //         break;
+            //     default:
+            //         err(`Invalid use of operator '*'`);
+            //         break;
+            // }
+
+            // return result;
         })));
 
+        // Simply returns itself
         this.functions.set('unary_+', new Func('unary_+', [], new NativeExpression(context => {
             return context.self;
         })));
 
-        this.functions.set('unary_-',new Func('unary_-', [], new NativeExpression(context => {
+        this.functions.set('unary_-', new Func('unary_-', [], new NativeExpression(context => {
             return context.self;
         })));
 

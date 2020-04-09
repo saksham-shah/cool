@@ -10,6 +10,7 @@ const NativeExpression = require('../../ast/nativeexpression');
 const NumberLiteral = require('../../ast/number');
 const Reference = require('../../ast/reference');
 
+// Has static functions relating to console input and output
 module.exports = class extends Class {
     constructor() {
         super();
@@ -18,6 +19,7 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
+        // Outputs to the console
         this.statics.set('print', new Func('print', ['obj'], new NativeExpression(context => {
             let call = new FunctionCall(new Reference('obj'), 'toString');
     
@@ -28,6 +30,7 @@ module.exports = class extends Class {
             return context.environment.getValue('obj');
         })));
 
+        // Just a test - the Math class will have this
         this.statics.set('PI', new NumberLiteral(3));
     }
 }

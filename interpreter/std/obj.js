@@ -5,6 +5,7 @@ const NativeExpression = require('../../ast/nativeexpression');
 const Obj = require('../object');
 const Types = require('../../types/types');
 
+// The base Object Class
 module.exports = class extends Class {
     constructor() {
         super();
@@ -16,5 +17,7 @@ module.exports = class extends Class {
             str.setProperty('value', '<Object>Object')
             return str;
         })));
+
+        // Could have methods like instanceof
     }
 }

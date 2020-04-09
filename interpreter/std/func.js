@@ -5,6 +5,7 @@ const NativeExpression = require('../../ast/nativeexpression');
 const Obj = require('../object');
 const Types = require('../../types/types');
 
+// Function Class
 module.exports = class extends Class {
     constructor() {
         super();
@@ -18,5 +19,9 @@ module.exports = class extends Class {
             str.setProperty('.value', '<Function>' + context.self.getProperty('.name'));
             return str;
         })));
+
+        // May later have methods like 'bind' and 'apply'
+
+        // Maybe async in the future?
     }
 }

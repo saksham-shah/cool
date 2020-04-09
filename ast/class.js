@@ -15,21 +15,22 @@ module.exports = class extends Expression {
         return true;
     }
 
+    // Looks for a function in this class
+    // If not found, recursively checks the super class
+    // RETURNS: Function Expression (or undefined if the function isn't found)
     getMethod(context, functionName) {
-        // for (let func of this.functions) {
-        //     if (func.name == functionName) {
-        //         return func;
-        //     }
-        // }
-
+        // If this class has the function, return it
         for (let [name, func] of this.functions) {
             if (name == functionName) return func;
         }
 
+        // If a function hasn't been found and there is no super class
+        // This means the function doesn't exist
         if (this.superClass == undefined) {
             return undefined;
         }
 
+        // Recursion!
         let superClass = context.environment.getValue(this.superClass);
 
         let klass = superClass.getProperty('.class');

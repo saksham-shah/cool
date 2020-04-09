@@ -13,6 +13,7 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
+        // Functions for each operator, similar to the Number class
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
@@ -46,6 +47,7 @@ module.exports = class extends Class {
 
             switch (right.type) {
                 case Types.Int:
+                    // Repeats the string a specified number of times
                     result = Obj.create(context, Types.String);
                     let str = '';
                     let substr = left.getProperty('.value');
@@ -66,12 +68,14 @@ module.exports = class extends Class {
             return result;
         })));
 
+        // The length of the string
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
             let result = Obj.create(context, Types.Int);
             result.setProperty('.value', context.self.getProperty('.value').length);
             return result;
         })));
 
+        // It's already a string
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             return context.self;
         })));

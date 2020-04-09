@@ -5,6 +5,7 @@ const NativeExpression = require('../../ast/nativeexpression');
 const Obj = require('../object');
 const Types = require('../../types/types');
 
+// Int Class - name might change to Num or Number as I don't want a seperate Double class
 module.exports = class extends Class {
     constructor() {
         super();
@@ -13,11 +14,13 @@ module.exports = class extends Class {
 
         this.superClass = Types.Object;
 
+        // The '+' operator
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
             let left = context.self;
             let result;
 
+            // Different uses of '+' based on data type
             switch (right.type) {
                 case Types.Int:
                     result = Obj.create(context, Types.Int);
@@ -38,6 +41,8 @@ module.exports = class extends Class {
 
             return result;
         })));
+
+        // Similar functions for other operators
 
         this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
             let right = context.environment.getValue('right');
@@ -92,6 +97,7 @@ module.exports = class extends Class {
             return result;
         })));
 
+        // Unary operators, like '-6'
         this.functions.set('unary_+', new Func('unary_+', [], new NativeExpression(context => {
             return context.self;
         })));
