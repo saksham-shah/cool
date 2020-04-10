@@ -25,7 +25,7 @@ module.exports = class {
     }
 
     static isOperator(char) {
-        return char === '=' || char === '+' || char === '-' || char === '*' || char === '/' || char === '!' || char === '>' || char === '<';
+        return char === '=' || char === '+' || char === '-' || char === '*' || char === '/' || char === '!' || char === '&' || char === '|' || char === '>' || char === '<';
     }
 
     static isBracket(char) {

@@ -6,6 +6,7 @@ const Evaluator = require('./interpreter/evaluator');
 const Context = require('./interpreter/context');
 
 const ObjectClass = require('./interpreter/std/obj');
+const BooleanClass = require('./interpreter/std/boolean');
 const ClassClass = require('./interpreter/std/class');
 const FunctionClass = require('./interpreter/std/func');
 const NumberClass = require('./interpreter/std/number');
@@ -30,7 +31,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program.expressions[1]);
+    // console.log(program.expressions[1].args[0]);
 
     let context = new Context();
     // context.addClass(new ObjectClass());
@@ -45,6 +46,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     context.environment.enterScope();
 
     addClass(context, new ObjectClass());
+    addClass(context, new BooleanClass());
     addClass(context, new ClassClass());
     addClass(context, new UndefinedClass());
     addClass(context, new FunctionClass());

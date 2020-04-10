@@ -1,10 +1,5 @@
 extract Console
 
-print(x + (x = 3))
-print(x + (x = 3))
 
-print (y -1)
+print(no and 8 > "hello" or print)
 
-print(Int)
-
-print(Number)

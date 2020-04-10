@@ -28,6 +28,10 @@ module.exports = class {
             return this.evaluateBlock(context, expression);
         }
 
+        if (expression.isBooleanLiteral()) {
+            return this.evaluateBooleanLiteral(context, expression);
+        }
+
         if (expression.isClass()) {
             return this.evaluateClass(context, expression);
         }
@@ -54,6 +58,10 @@ module.exports = class {
 
         if (expression.isStringLiteral()) {
             return this.evaluateStringLiteral(context, expression);
+        }
+
+        if (expression.isThis()) {
+            return this.evaluateThis(context, expression);
         }
 
         if (expression.isUnaryExpression()) {
@@ -112,6 +120,13 @@ module.exports = class {
         context.environment.exitScope();
 
         return latest;
+    }
+
+    // RETURNS: Boolean Obj
+    static evaluateBooleanLiteral(context, boolean) {
+        let obj = Obj.create(context, Types.Boolean);
+        obj.setProperty('.value', boolean.value);
+        return obj;
     }
 
     // RETURNS: Class Obj
@@ -239,9 +254,9 @@ module.exports = class {
             // Like assignments, this refers to a property of an object
             let obj = this.evaluate(context, reference.object);
 
-            if (obj.type == Types.Undefined) {
-                throw new Error(Report.error(`Cannot get property of undefined object`, reference.line, reference.column, reference.file));
-            }
+            // if (obj.type == Types.Undefined) {
+            //     throw new Error(Report.error(`Cannot get property of undefined object`, reference.line, reference.column, reference.file));
+            // }
 
             value = obj.getProperty(reference.identifier);
         }
@@ -260,6 +275,11 @@ module.exports = class {
         let obj = Obj.create(context, Types.String);
         obj.setProperty('.value', string.value);
         return obj;
+    }
+
+    // RETURNS: Obj
+    static evaluateThis(context, thisExp) {
+        return context.self;
     }
 
     // RETURNS: Result of the unary expression

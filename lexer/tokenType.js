@@ -15,6 +15,7 @@ module.exports = {
 
     DoubleEquals: '==',
     NotEqual: '!=',
+    Not: '!',
 
     GreaterThan: '>',
     LessThan: '<',
@@ -31,8 +32,8 @@ module.exports = {
 
     // Keywords
     // Var: 'var',
-    True: 'true',
-    False: 'false',
+    True: 'yes',
+    False: 'no',
     And: 'and',
     Or: 'or',
 

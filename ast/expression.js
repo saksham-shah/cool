@@ -21,6 +21,10 @@ module.exports = class extends AstBase {
         return false;
     }
 
+    isBooleanLiteral() {
+        return false;
+    }
+
     isClass() {
         return false;
     }
@@ -46,6 +50,10 @@ module.exports = class extends AstBase {
     }
 
     isStringLiteral() {
+        return false;
+    }
+
+    isThis() {
         return false;
     }
 

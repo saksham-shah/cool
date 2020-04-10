@@ -5,6 +5,7 @@ const TokenType = require('../lexer/tokenType');
 const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
+const BooleanLiteral = require('../ast/boolean');
 const FunctionCall = require('../ast/functioncall');
 const NumberLiteral = require('../ast/number');
 const Reference = require('../ast/reference');
@@ -40,6 +41,11 @@ module.exports = class {
 
         } else if (this.isNext(TokenType.String)) {
             value = new StringLiteral(this.expect(TokenType.String).value);
+
+        } else if (this.isNext(TokenType.True, TokenType.False)) {
+            value = new BooleanLiteral(this.currentToken.type == TokenType.True);
+
+            this.currentToken = this.lexer.nextToken();
 
         } else if (this.unaryOperatorIsNext()) {
             let operator = token.value;
@@ -134,7 +140,7 @@ module.exports = class {
     // For the above, parseValue would parse the number 3 and ignore the addition expression
     // RETURNS: Expression
     parseExpression() {
-        return this.parseAddition();
+        return this.parseOr();
     }
 
     // Checks if a definition is next and parses appropriately
@@ -157,13 +163,33 @@ module.exports = class {
         return value;
     }
 
+    // RETURNS: Expression
+    // parseBooleanExpression() {
+    //     return this.parseBinaryExpression(this.booleanIsNext, this.parseComparison);
+    // }
+
     // Currently the lowest priority operation
+    // RETURNS: Expression
+    parseOr() {
+        return this.parseBinaryExpression(this.orIsNext, this.parseAnd);
+    }
+
+    // RETURNS: Expression
+    parseAnd() {
+        return this.parseBinaryExpression(this.andIsNext, this.parseComparison);
+    }
+
+    // Similar to the above
+    // RETURNS: Expression
+    parseComparison() {
+        return this.parseBinaryExpression(this.comparisonIsNext, this.parseAddition);
+    }
+
     // RETURNS: Expression
     parseAddition() {
         return this.parseBinaryExpression(this.additionIsNext, this.parseMultiplication);
     }
 
-    // Similar to addition
     // RETURNS: Expression
     parseMultiplication() {
         return this.parseBinaryExpression(this.multiplicationIsNext, this.parseProperty);
@@ -273,6 +299,22 @@ module.exports = class {
     // The below functions check if particular operators are next
     // RETURNS: Boolean
 
+    // booleanIsNext() {
+    //     return this.isNext(TokenType.And, TokenType.Or, TokenType.DoubleEquals, TokenType.NotEqual);
+    // }
+
+    orIsNext() {
+        return this.isNext(TokenType.Or);
+    }
+
+    andIsNext() {
+        return this.isNext(TokenType.And);
+    }
+
+    comparisonIsNext() {
+        return this.isNext(TokenType.DoubleEquals, TokenType.NotEqual, TokenType.GreaterThan, TokenType.GreaterThanOrEqual, TokenType.LessThan, TokenType.LessThanOrEqual);
+    }
+
     additionIsNext() {
         return this.isNext(TokenType.Plus, TokenType.Minus);
     }
@@ -282,6 +324,6 @@ module.exports = class {
     }
 
     unaryOperatorIsNext() {
-        return this.isNext(TokenType.Plus, TokenType.Minus);
+        return this.isNext(TokenType.Plus, TokenType.Minus, TokenType.Not);
     }
 }

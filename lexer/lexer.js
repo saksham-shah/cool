@@ -192,8 +192,70 @@ module.exports = class {
     }
 
     recogniseOperator(char) {
+        let column = this.column;
+        
         this.counter++;
         this.column++;
+
+        let nextChar = null;
+        if (this.counter + 1 < this.len) nextChar = this.getChar();
+
+        if (nextChar == '=' || nextChar == '&' || nextChar == '|') {
+            this.counter++;
+            this.column++;
+        }
+
+        switch (char) {
+            case '+':
+                return new Token(TokenType.Plus, '+', this.line, column, this.file);
+
+            case '-':
+                return new Token(TokenType.Minus, '-', this.line, column, this.file);
+
+            case '*':
+                return new Token(TokenType.Times, '*', this.line, column, this.file);
+        
+            case '/':
+                return new Token(TokenType.Divide, '/', this.line, column, this.file);
+
+            case '=':
+                if (nextChar == '=') {
+                    return new Token(TokenType.DoubleEquals, '==', this.line, column, this.file);
+                }
+                return new Token(TokenType.Equal, '=', this.line, column, this.file);
+            
+            case '!':
+                if (nextChar == '=') {
+                    return new Token(TokenType.NotEqual, '!=', this.line, column, this.file);
+                }
+                return new Token(TokenType.Not, '!', this.line, column, this.file);
+            
+            case '&':
+                if (nextChar == '&') {
+                    return new Token(TokenType.And, '&&', this.line, column, this.file);
+                }
+
+            case '|':
+                if (nextChar == '|') {
+                    return new Token(TokenType.Or, '||', this.line, column, this.file);
+                }
+
+            case '>':
+                if (nextChar == '=') {
+                    return new Token(TokenType.GreaterThanOrEqual, '>=', this.line, column, this.file);
+                }
+                return new Token(TokenType.GreaterThan, '>', this.line, column, this.file);
+
+            case '<':
+                if (nextChar == '=') {
+                    return new Token(TokenType.LessThanOrEqual, '<=', this.line, column, this.file);
+                }
+                return new Token(TokenType.LessThan, '<', this.line, column, this.file);
+
+            default:
+                throw new Error(Report.error(`Unexpected token ${char}`, this.line, column, this.file));
+        }
+
 
         if (char === '=') {
             return new Token(TokenType.Equal, '=', this.line, this.column - 1, this.file);
