@@ -7,10 +7,12 @@ const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
 const BooleanLiteral = require('../ast/boolean');
 const FunctionCall = require('../ast/functioncall');
+const IfElse = require('../ast/ifelse');
 const NumberLiteral = require('../ast/number');
 const Reference = require('../ast/reference');
 const StringLiteral = require('../ast/string');
 const UnaryExpression = require('../ast/unaryexpression');
+const While = require('../ast/while');
 
 // Definitions
 const Extract = require('../ast/extract');
@@ -47,6 +49,12 @@ module.exports = class {
 
             this.currentToken = this.lexer.nextToken();
 
+        } else if (this.isNext(TokenType.If)) {
+            value = this.parseIfElse();
+
+        } else if (this.isNext(TokenType.While)) {
+            value = this.parseWhile();
+
         } else if (this.unaryOperatorIsNext()) {
             let operator = token.value;
             this.currentToken = this.lexer.nextToken();
@@ -56,11 +64,14 @@ module.exports = class {
         } else if (this.isNext(TokenType.OpenBracket)) {
             value = this.parseBracket();
 
+        } else if (this.isNext(TokenType.OpenBrace)) {
+            value = this.parseBlock();
+
         } else if (this.isNext(TokenType.Identifier)) {
             let nextToken = this.lexer.lookahead();
 
             // Parses according to the next token
-            if (nextToken.type == TokenType.Equal) {
+            if (this.tokenIsAssignment(nextToken)) {
                 value = this.parseAssignment();
             } else if (nextToken.type == TokenType.OpenBracket) {
                 value = this.parseFunctionCall();
@@ -140,7 +151,7 @@ module.exports = class {
     // For the above, parseValue would parse the number 3 and ignore the addition expression
     // RETURNS: Expression
     parseExpression() {
-        return this.parseOr();
+        return this.parseBooleanExpression();
     }
 
     // Checks if a definition is next and parses appropriately
@@ -169,6 +180,11 @@ module.exports = class {
     // }
 
     // Currently the lowest priority operation
+    // RETURNS: Expression
+    parseBooleanExpression() {
+        return this.parseBinaryExpression(this.booleanIsNext, this.parseOr);
+    }
+
     // RETURNS: Expression
     parseOr() {
         return this.parseBinaryExpression(this.orIsNext, this.parseAnd);
@@ -231,6 +247,33 @@ module.exports = class {
         return new Assignment(identifier, operator, this.parseExpression(), object);
     }
 
+    // RETURNS: Block Expression
+    parseBlock() {
+        let token = this.currentToken;
+
+        this.expect(TokenType.OpenBrace);
+
+        let expressions = [];
+        let definitions = [];
+
+        while (!this.isNext(TokenType.CloseBrace)) {
+            let ast = this.parseAnything();
+            if (ast.isExpression()) {
+                expressions.push(ast);
+            } else {
+                definitions.push(ast);
+            }
+        }
+
+        this.expect(TokenType.CloseBrace);
+
+        let block = new Block(expressions, definitions);
+
+        block.copyLocation(token);
+
+        return block;
+    }
+
     // RETURNS: Expression
     parseBracket() {
         this.expect(TokenType.OpenBracket);
@@ -244,11 +287,15 @@ module.exports = class {
 
     // RETURNS: Function Call Expression
     parseFunctionCall(object) {
+        let token = this.currentToken;
+
         let functionName = this.expect(TokenType.Identifier).value;
 
         let args = this.parseArguments();
 
         let func = new FunctionCall(object, functionName, args);
+        
+        func.copyLocation(token);
 
         return func;
     }
@@ -271,6 +318,42 @@ module.exports = class {
         this.expect(TokenType.CloseBracket);
 
         return args;
+    }
+
+    parseIfElse() {
+        let token = this.currentToken;
+
+        this.expect(TokenType.If);
+
+        let condition = this.parseExpression();
+        let thenBlock = this.parseExpression();
+        let elseBlock = undefined;
+
+        if (this.isNext(TokenType.Else)) {
+            this.expect(TokenType.Else);
+            elseBlock = this.parseExpression();
+        }
+
+        let ifElse =  new IfElse(condition, thenBlock, elseBlock);
+
+        ifElse.copyLocation(token);
+
+        return ifElse;
+    }
+
+    parseWhile() {
+        let token = this.currentToken;
+
+        this.expect(TokenType.While);
+
+        let condition = this.parseExpression();
+        let body = this.parseExpression();
+
+        let whileExpr =  new While(condition, body);
+
+        whileExpr.copyLocation(token);
+
+        return whileExpr;
     }
 
     // Checks whether the next token is a particular type
@@ -299,9 +382,9 @@ module.exports = class {
     // The below functions check if particular operators are next
     // RETURNS: Boolean
 
-    // booleanIsNext() {
-    //     return this.isNext(TokenType.And, TokenType.Or, TokenType.DoubleEquals, TokenType.NotEqual);
-    // }
+    booleanIsNext() {
+        return this.isNext(TokenType.DoubleEquals, TokenType.NotEqual);
+    }
 
     orIsNext() {
         return this.isNext(TokenType.Or);
@@ -320,10 +403,18 @@ module.exports = class {
     }
 
     multiplicationIsNext() {
-        return this.isNext(TokenType.Times, TokenType.Divide);
+        return this.isNext(TokenType.Times, TokenType.Divide, TokenType.Mod);
     }
 
     unaryOperatorIsNext() {
         return this.isNext(TokenType.Plus, TokenType.Minus, TokenType.Not);
+    }
+
+    // Similar to the above, but assignment operators are detected slightly differently
+    // RETURNS: Boolean
+    tokenIsAssignment(token) {
+        return token.type === TokenType.Equal || token.type === TokenType.PlusEqual
+            || token.type === TokenType.MinusEqual || token.type === TokenType.TimesEqual
+            || token.type === TokenType.DivideEqual || token.type === TokenType.ModEqual
     }
 }

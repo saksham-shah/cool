@@ -8,9 +8,11 @@ print("Collatz pattern for " + num)
 print(num)
 
 while num != 1 {
-
-    num = if num % 2 num * 3 + 1 else num / 2
-
+    if (num % 2) {
+        num = 3 * num + 1
+    } else {
+        num /= 2
+    }
     print(num)
     counter += 1
 

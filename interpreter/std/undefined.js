@@ -25,11 +25,6 @@ module.exports = class extends Class {
             let right = context.environment.getValue('right');
             let result;
 
-            // if (right.type == Types.Number || right.type == Types.String || right.type == Types.Undefined) {
-            //     return right;
-            // }
-            // err(`Invalid use of operator '*'`);
-
             switch (right.type) {
                 case Types.Number:
                     result = Obj.create(context, Types.Number);
@@ -146,6 +141,94 @@ module.exports = class extends Class {
             let bool = Evaluator.evaluateFunctionCall(context, call);
             bool.setProperty('.value', !bool.getProperty('.value'));
             return bool;
+        })));
+
+        this.functions.set('>', new Func('>', ['right'], new NativeExpression((context, err) => {
+            let right = context.environment.getValue('right');
+            let result = Obj.create(context, Types.Boolean);
+
+            switch (right.type) {
+                case Types.Number:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.String:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.Undefined:
+                    result.setProperty('.value', false);
+                    break;
+                default:
+                    err(`Invalid use of operator '>'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('>=', new Func('>=', ['right'], new NativeExpression((context, err) => {
+            let right = context.environment.getValue('right');
+            let result = Obj.create(context, Types.Boolean);
+
+            switch (right.type) {
+                case Types.Number:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.String:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.Undefined:
+                    result.setProperty('.value', true);
+                    break;
+                default:
+                    err(`Invalid use of operator '>='`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('<', new Func('<', ['right'], new NativeExpression((context, err) => {
+            let right = context.environment.getValue('right');
+            let result = Obj.create(context, Types.Boolean);
+
+            switch (right.type) {
+                case Types.Number:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.String:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.Undefined:
+                    result.setProperty('.value', false);
+                    break;
+                default:
+                    err(`Invalid use of operator '<'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('<=', new Func('<=', ['right'], new NativeExpression((context, err) => {
+            let right = context.environment.getValue('right');
+            let result = Obj.create(context, Types.Boolean);
+
+            switch (right.type) {
+                case Types.Number:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.String:
+                    result.setProperty('.value', true);
+                    break;
+                case Types.Undefined:
+                    result.setProperty('.value', true);
+                    break;
+                default:
+                    err(`Invalid use of operator '<='`);
+                    break;
+            }
+
+            return result;
         })));
 
         this.functions.set('toBoolean', new Func('toBoolean', [], new NativeExpression(context => {

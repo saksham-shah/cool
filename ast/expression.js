@@ -37,6 +37,10 @@ module.exports = class extends AstBase {
         return false;
     }
 
+    isIfElse() {
+        return false;
+    }
+
     isNumberLiteral() {
         return false;
     }
@@ -58,6 +62,10 @@ module.exports = class extends AstBase {
     }
 
     isUnaryExpression() {
+        return false;
+    }
+
+    isWhile() {
         return false;
     }
 }

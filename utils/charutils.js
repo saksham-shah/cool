@@ -25,11 +25,11 @@ module.exports = class {
     }
 
     static isOperator(char) {
-        return char === '=' || char === '+' || char === '-' || char === '*' || char === '/' || char === '!' || char === '&' || char === '|' || char === '>' || char === '<';
+        return char === '=' || char === '+' || char === '-' || char === '*' || char === '/' || char === '%' || char === '!' || char === '&' || char === '|' || char === '>' || char === '<';
     }
 
     static isBracket(char) {
-        return char === '(' || char === ')';
+        return char === '(' || char === ')' || char === '[' || char === ']' || char === '{' || char === '}';
     }
 
     static isSpace(char) {
@@ -42,7 +42,7 @@ module.exports = class {
 
     // Uses regex to find whitespace
     static isWhitespace(char) {
-        return /[ \t\r\f\v\u00A0\u2028\u2029]/.test(char);
+        return /[ \t\r\f\v\u00A0\u2028\u2029;]/.test(char);
     }
 
     static isStringMark(char) {

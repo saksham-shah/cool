@@ -105,6 +105,43 @@ module.exports = class extends Class {
             return result;
         })));
 
+        // Integer division
+        this.functions.set('/', new Func('/', ['right'], new NativeExpression((context, err) => {
+            let right = context.environment.getValue('right');
+            let left = context.self;
+            let result;
+
+            switch (right.type) {
+                case Types.Number:
+                    result = Obj.create(context, Types.Number);
+                    result.setProperty('.value', Math.floor(left.getProperty('.value') / right.getProperty('.value')));
+                    break;
+                default:
+                    err(`Invalid use of operator '/'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('%', new Func('%', ['right'], new NativeExpression((context, err) => {
+            let right = context.environment.getValue('right');
+            let left = context.self;
+            let result;
+
+            switch (right.type) {
+                case Types.Number:
+                    result = Obj.create(context, Types.Number);
+                    result.setProperty('.value', left.getProperty('.value') % right.getProperty('.value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '%'`);
+                    break;
+            }
+
+            return result;
+        })));
+
         // Boolean operators
         this.functions.set(TokenType.And, new Func(TokenType.And, ['right'], new NativeExpression(context => {
             if (context.self.getProperty('.value') > 0) {

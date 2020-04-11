@@ -1,0 +1,16 @@
+extract Console
+
+n = 10
+
+print("The first " + n + " fibonacci numbers")
+
+a = 0
+b = 1
+
+while counter < n {
+    print(b)
+    temp = b
+    b = a + b
+    a = temp
+    counter += 1
+}

@@ -1,5 +1,6 @@
 const Expression = require('../ast/expression');
 const FunctionCall = require('../ast/functioncall');
+const Reference = require('../ast/reference');
 
 const Obj = require('./object');
 const Types = require('../types/types');
@@ -44,6 +45,10 @@ module.exports = class {
             return this.evaluateFunctionCall(context, expression);
         }
 
+        if (expression.isIfElse()) {
+            return this.evaluateIfElse(context, expression);
+        }
+
         if (expression.isNumberLiteral()) {
             return this.evaluateNumberLiteral(context, expression);
         }
@@ -67,13 +72,25 @@ module.exports = class {
         if (expression.isUnaryExpression()) {
             return this.evaluateUnaryExpression(context, expression);
         }
+
+        if (expression.isWhile()) {
+            return this.evaluateWhile(context, expression);
+        }
     }
 
     // All 'evaluate' methods return an Obj
 
     // RETURNS: Obj set in the assignment
     static evaluateAssignment(context, assignment) {
-        let value = this.evaluate(context, assignment.value);
+        let value;
+        if (assignment.operator == '=') {
+            value = this.evaluate(context, assignment.value);
+        } else {
+            // Other operators like '+='
+            // Checks the first character and calls the apprpriate function
+            let call = new FunctionCall(new Reference(assignment.identifier, assignment.object), assignment.operator[0], [assignment.value]);
+            value = this.evaluateFunctionCall(context, call);
+        }
 
         if (assignment.object == undefined) {
             context.environment.setValue(assignment.identifier, value);
@@ -231,6 +248,26 @@ module.exports = class {
         return value;
     }
 
+    // RETURNS: Obj
+    static evaluateIfElse(context, ifElse) {
+        // Determine whether the condition evaluates to true
+        let call = new FunctionCall(ifElse.condition, 'toBoolean');
+        let bool = this.evaluate(context, call);
+        // Return undefined by default (e.g. if there is no else block and the condition is false)
+        let value = Obj.create(context, Types.Undefined)
+
+        if (bool.getProperty('.value')) {
+            // If the condition is true
+            value = this.evaluate(context, ifElse.thenBlock);
+
+        } else if (ifElse.elseBlock != undefined) {
+            // Only evaluate the else block if there is one
+            value = this.evaluate(context, ifElse.elseBlock);
+        }
+
+        return value;
+    }
+
     // RETURNS: Number Obj
     static evaluateNumberLiteral(context, number) {
         let obj = Obj.create(context, Types.Number);
@@ -288,6 +325,26 @@ module.exports = class {
         let call = new FunctionCall(expression.expression, 'unary_' + expression.operator);
         call.copyLocation(expression);
         return this.evaluateFunctionCall(context, call);
+    }
+
+    // RETURNS: Obj
+    static evaluateWhile(context, whileExpr) {
+        // Initial condition evaluation
+        let call = new FunctionCall(whileExpr.condition, 'toBoolean');
+        let bool = this.evaluate(context, call);
+
+        // Return undefined by default (if the while loop never runs)
+        let value = Obj.create(context, Types.Undefined);
+
+        while (bool.getProperty('.value')) {
+            value = this.evaluate(context, whileExpr.body);
+
+            // Redo the condition after every loop
+            call = new FunctionCall(whileExpr.condition, 'toBoolean');
+            bool = this.evaluate(context, call);
+        }
+
+        return value;
     }
 
     // Definitions simply set values in the context and don't return anything

@@ -55,7 +55,13 @@ module.exports = class {
         }
 
         // Must always return an Obj so if the value isn't found, it returns an Undefined Obj
-        if (value == undefined) return Obj.create(this.context, Types.Undefined);
+        if (value == undefined) {
+            let undef = Obj.create(this.context, Types.Undefined);
+
+            // Sets this value for future use
+            this.scope.set(identifier, undef);
+            return undef;
+        }
 
         return value;
     }
@@ -72,7 +78,7 @@ module.exports = class {
         let findValue = scope.get(identifier);
 
         // If the value is undefined, don't store it as it just wastes space
-        if (value.type == Types.Undefined) value = undefined;
+        // if (value.type == Types.Undefined) value = undefined;
 
         // Looks for the value, similar to getValue
         while (findValue == undefined && counter > 0) {

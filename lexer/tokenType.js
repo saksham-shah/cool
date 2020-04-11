@@ -6,13 +6,27 @@ module.exports = {
     Identifier: 'IDENTIFIER',
 
     // Operators
-    Equal: '=',
-
+    
+    // Arithmetic
     Plus: '+',
     Minus: '-',
     Times: '*',
     Divide: '/',
+    Mod: '%',
 
+    // Assignment
+    Equal: '=',
+    PlusEqual: '+=',
+    MinusEqual: '-=',
+    TimesEqual: '*=',
+    DivideEqual: '/=',
+    ModEqual: '%=',
+
+    // Increment
+    PlusPlus: '++',
+    MinusMinus: '--',
+
+    // Comparison
     DoubleEquals: '==',
     NotEqual: '!=',
     Not: '!',
@@ -25,6 +39,10 @@ module.exports = {
     // Brackets
     OpenBracket: '(',
     CloseBracket: ')',
+    OpenSquare: '[',
+    CloseSquare: ']',
+    OpenBrace: '{',
+    CloseBrace: '}',
 
     // Other
     Dot: '.',

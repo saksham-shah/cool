@@ -207,16 +207,48 @@ module.exports = class {
 
         switch (char) {
             case '+':
+                if (nextChar == '=') {
+                    return new Token(TokenType.PlusEqual, '+=', this.line, column, this.file);
+                }
+
+                if (nextChar == '+') {
+                    this.counter++;
+                    this.column++;
+                    return new Token(TokenType.PlusPlus, '++', this.line, column, this.file);
+                }
+
                 return new Token(TokenType.Plus, '+', this.line, column, this.file);
 
             case '-':
+                if (nextChar == '=') {
+                    return new Token(TokenType.MinusEqual, '-=', this.line, column, this.file);
+                }
+
+                if (nextChar == '-') {
+                    this.counter++;
+                    this.column++;
+                    return new Token(TokenType.MinusMinus, '--', this.line, column, this.file);
+                }
+
                 return new Token(TokenType.Minus, '-', this.line, column, this.file);
 
             case '*':
+                if (nextChar == '=') {
+                    return new Token(TokenType.TimesEqual, '*=', this.line, column, this.file);
+                }
                 return new Token(TokenType.Times, '*', this.line, column, this.file);
         
             case '/':
+                if (nextChar == '=') {
+                    return new Token(TokenType.DivideEqual, '/=', this.line, column, this.file);
+                }
                 return new Token(TokenType.Divide, '/', this.line, column, this.file);
+            
+            case '%':
+                if (nextChar == '=') {
+                    return new Token(TokenType.ModEqual, '%=', this.line, column, this.file);
+                }
+                return new Token(TokenType.Mod, '%', this.line, column, this.file);
 
             case '=':
                 if (nextChar == '=') {
@@ -255,32 +287,35 @@ module.exports = class {
             default:
                 throw new Error(Report.error(`Unexpected token ${char}`, this.line, column, this.file));
         }
-
-
-        if (char === '=') {
-            return new Token(TokenType.Equal, '=', this.line, this.column - 1, this.file);
-        }
-
-        if (char === '+') {
-            return new Token(TokenType.Plus, '+', this.line, this.column - 1, this.file);
-        }
-
-        if (char === '-') {
-            return new Token(TokenType.Minus, '-', this.line, this.column - 1, this.file);
-        }
-
-        if (char === '*') {
-            return new Token(TokenType.Times, '*', this.line, this.column - 1, this.file);
-        }
-
-        if (char === '/') {
-            return new Token(TokenType.Divide, '/', this.line, this.column - 1, this.file);
-        }
     }
 
     recogniseBracket(char) {
         this.counter ++;
         this.column++;
+
+        switch (char) {
+            case '(':
+                return new Token(TokenType.OpenBracket, '(', this.line, this.column - 1, this.file);
+
+            case ')':
+                return new Token(TokenType.CloseBracket, ')', this.line, this.column - 1, this.file);
+
+            case '[':
+                return new Token(TokenType.OpenSquare, '[', this.line, this.column - 1, this.file);
+                
+            case ']':
+                return new Token(TokenType.CloseSquare, ']', this.line, this.column - 1, this.file);
+
+            case '{':
+                return new Token(TokenType.OpenBrace, '{', this.line, this.column - 1, this.file);
+                
+            case '}':
+                return new Token(TokenType.CloseBrace, '}', this.line, this.column - 1, this.file);
+
+            default:
+                throw new Error(Report.error(`Unexpected token ${char}`, this.line, this.column - 1, this.file));
+
+        }
 
         if (char === '(') {
             return new Token(TokenType.OpenBracket, '(', this.line, this.column - 1, this.file);
