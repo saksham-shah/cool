@@ -1,21 +1,34 @@
+// Extract the 'print' function into the global scope
 extract Console
 
+// Initialise variables
+// Not always required, but here we want to access these variables globally later on
 num = 27
 counter highest
+
+// Outputs the Collatz pattern for the specified number
+// Outputs the number of steps and the highest number reached
 
 print("Collatz pattern for " + num)
 
 print(num)
 
 while num != 1 {
+    // The Collatz pattern
     if (num % 2) {
         num = 3 * num + 1
     } else {
         num /= 2
     }
+
+    // Alternatively...
+    // num = if num % 2 num * 3 + 1 else num / 2
+    // ...if readability doesn't matter to you
+
     print(num)
     counter += 1
 
+    // Update highest number reached
     if num > highest highest = num
 }
 

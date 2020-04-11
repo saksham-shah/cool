@@ -1,0 +1,29 @@
+// Extract the 'print' function into the global scope
+extract Console
+
+decimalPlaces = 10
+
+a = 22
+b = 7
+
+// Divides two numbers to a specified number of decimal places
+// Only integer division is native in Cool
+
+print("Dividing " + a + " by " + b + " to " + decimalPlaces + " decimal places")
+
+// Before the decimal place
+integer = a / b
+remainder = a % b
+
+// After the decimal place
+decimals = ""
+
+while decimals < decimalPlaces {
+    // Like the long division thing where you keep adding zeroes
+    remainder *= 10
+    decimals += remainder / b
+
+    remainder %= b
+}
+
+print(integer + "." + decimals)

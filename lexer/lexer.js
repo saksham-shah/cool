@@ -239,6 +239,11 @@ module.exports = class {
                 return new Token(TokenType.Times, '*', this.line, column, this.file);
         
             case '/':
+                if (nextChar == '/') {
+                    this.skipUntilNewline();
+                    return this.nextToken();
+                }
+
                 if (nextChar == '=') {
                     return new Token(TokenType.DivideEqual, '/=', this.line, column, this.file);
                 }
@@ -360,6 +365,15 @@ module.exports = class {
                 this.line++;
                 this.column = 0;
             }
+            this.counter++;
+            this.column++;
+        }
+    }
+
+    // Skip to the next line (used for commenting code)
+    // RETURNS: nothing
+    skipUntilNewline() {
+        while (this.counter < this.len && !CharUtils.isNewline(this.getChar())) {
             this.counter++;
             this.column++;
         }

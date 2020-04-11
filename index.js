@@ -16,7 +16,7 @@ const ConsoleClass = require('./interpreter/std/console');
 
 let codeText;
 
-const filename = 'code.cool';
+const filename = 'examples/fibonacci.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -31,7 +31,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program.expressions[1].args[0]);
+    // console.log(program.expressions);
 
     let context = new Context();
     // context.addClass(new ObjectClass());

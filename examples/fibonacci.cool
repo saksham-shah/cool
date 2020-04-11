@@ -1,6 +1,9 @@
+// Extract the 'print' function into the global scope
 extract Console
 
 n = 10
+
+// Prints the first n fibonacci numbers
 
 print("The first " + n + " fibonacci numbers")
 
@@ -9,8 +12,13 @@ b = 1
 
 while counter < n {
     print(b)
+    
     temp = b
+
+    // The next fibonacci is found by adding the previous two
     b = a + b
+
     a = temp
+
     counter += 1
 }

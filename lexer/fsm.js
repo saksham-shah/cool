@@ -58,7 +58,7 @@ module.exports = class FSM {
 
                 case 'Main':
                     if (CharUtils.isStringMark(char)) return 'End'
-                    return 'Main';
+                    if (!CharUtils.isNewline(char)) return 'Main';
                     break;
             }
 
