@@ -211,25 +211,45 @@ module.exports = class {
         return this.parseBinaryExpression(this.multiplicationIsNext, this.parseProperty);
     }
 
-    // Currently the highest priority operation
+    // Currently the highest priority 'operation'
     // Handles dots - e.g. Console.print
+    // Handles square bracket properties - e.g. array[7]
     // The only thing higher up is parseValue which deals with things like brackets
     // RETURNS: Expression
     parseProperty() {
         let value = this.parseValue();
 
-        while(this.isNext(TokenType.Dot)) {
-            this.expect(TokenType.Dot);
+        while (this.isNext(TokenType.Dot, TokenType.OpenSquare)) {
+            if (this.isNext(TokenType.Dot)) {
+                this.expect(TokenType.Dot);
 
-            let nextToken = this.lexer.lookahead();
+                let nextToken = this.lexer.lookahead();
 
-            // Parses according to the next token
-            if (nextToken.type == TokenType.Equal) {
-                value = this.parseAssignment(value);
-            } else if (nextToken.type == TokenType.OpenBracket) {
-                value = this.parseFunctionCall(value);
+                // Parses according to the next token
+                if (nextToken.type == TokenType.Equal) {
+                    value = this.parseAssignment(value);
+                } else if (nextToken.type == TokenType.OpenBracket) {
+                    value = this.parseFunctionCall(value);
+                } else {
+                    value = new Reference(this.expect(TokenType.Identifier).value, value);
+                }
             } else {
-                value = new Reference(this.expect(TokenType.Identifier).value, value);
+                this.expect(TokenType.OpenSquare);
+                // Any expression can be inside the square brackets
+                let expr = this.parseExpression();
+                this.expect(TokenType.CloseSquare);
+    
+                let token = this.currentToken;
+    
+                // Parses according to the next token
+                // Sends an expression to be used as the identifier or function Name
+                if (token.type == TokenType.Equal) {
+                    value = this.parseAssignment(value, expr);
+                } else if (token.type == TokenType.OpenBracket) {
+                    value = this.parseFunctionCall(value, expr);
+                } else {
+                    value = new Reference(expr, value);
+                }
             }
         }
 
@@ -237,8 +257,10 @@ module.exports = class {
     }
    
     // RETURNS: Assignment Expression
-    parseAssignment(object) {     
-        let identifier = this.expect(TokenType.Identifier).value;
+    parseAssignment(object, identifier) {
+        if (identifier == undefined) {
+            identifier = this.expect(TokenType.Identifier).value;
+        }
 
         let operator = this.currentToken.value;
 
@@ -286,10 +308,12 @@ module.exports = class {
     }
 
     // RETURNS: Function Call Expression
-    parseFunctionCall(object) {
+    parseFunctionCall(object, functionName) {
         let token = this.currentToken;
 
-        let functionName = this.expect(TokenType.Identifier).value;
+        if (functionName == undefined) {
+            functionName = this.expect(TokenType.Identifier).value;
+        }
 
         let args = this.parseArguments();
 

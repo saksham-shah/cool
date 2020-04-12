@@ -7,6 +7,7 @@ module.exports = {
     Bool: 'Boolean',
     Class: 'Class',
     String: 'String',
+    Array: 'Array',
     Console: 'Console',
     Math: 'Math'
 }

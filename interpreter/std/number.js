@@ -310,7 +310,7 @@ module.exports = class extends Class {
 
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             let str = Obj.create(context, Types.String);
-            str.setProperty('.value', context.self.getProperty('.value'));
+            str.setProperty('.value', context.self.getProperty('.value').toString());
             return str;
         })));
     }

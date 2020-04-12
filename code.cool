@@ -1,21 +1,8 @@
 extract Console
+extract String
 
-num = 27
-counter highest
+self = "self"
 
-print("Collatz pattern for " + num)
+self.self = self
 
-print(num)
-
-while num != 1 {
-
-    num = if num % 2 num * 3 + 1 else num / 2
-
-    print(num)
-    counter += 1
-
-    if num > highest highest = num
-}
-
-print("Number of steps: " + counter)
-print("Highest reached: " + highest)
+print(self.self.self["self"][self[self[self.self]]].self)

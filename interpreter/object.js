@@ -1,4 +1,5 @@
 const Types = require('../types/types');
+const Report = require('../utils/report');
 
 // An Obj is an Object in Cool
 module.exports = class Obj {
@@ -22,8 +23,102 @@ module.exports = class Obj {
     }
 
     // Set a property of the object
+    // RETURNS: Nothing
     setProperty(propName, value) {
         this.properties.set(propName, value);
+    }
+
+    // Get a property at an index of the Array-like object
+    // RETURNS: Obj
+    getArrayProperty(index, errorExpr) {
+        switch (this.type) {
+            case Types.String:
+                let str = this.getProperty('.value');
+                // Allow reverse string indexes
+                if (index < 0) index += str.length;
+
+                // Check if the index is within the bounds of the string
+                if (index >= str.length || index < 0) {
+                    throw new Error(Report.error(`Index [${index}] out of bounds`, errorExpr.line, errorExpr.column, errorExpr.file));
+                }
+
+                // Create a new String Obj to return
+                let charObj = Obj.create(this.context, Types.String);
+                charObj.setProperty('.value', str[index]);
+
+                return charObj;
+
+            case Types.Array:
+                let arr = this.getProperty('.array');
+                // Allow reverse array indexes
+                if (index < 0) index += arr.length;
+
+                // Check if the index is within the bounds of the array
+                if (index >= arr.length || index < 0) {
+                    throw new Error(Report.error(`Index [${index}] out of bounds`, errorExpr.line, errorExpr.column, errorExpr.file));
+                }
+
+                // No need to create an Obj as all items of the Array will already be Objs
+                return arr[index];
+            
+            default:
+                console.log("This code should never be executed. Line 46 object.js");
+        }
+    }
+
+    // Set a property at an index of the Array-like object
+    // RETURNS: Nothing
+    setArrayProperty(index, value, errorExpr) {
+        switch (this.type) {
+            case Types.String:
+                let str = this.getProperty('.value');
+                if (index < 0) index += str.length;
+
+                if (index >= str.length || index < 0) {
+                    throw new Error(Report.error(`Index [${index}] out of bounds`, errorExpr.line, errorExpr.column, errorExpr.file));
+                }
+
+                let char;
+                // Convert various Objs into a JS string
+                if (value.type == Types.String) {
+                    char = value.getProperty('.value');
+                    
+                } else if (value.type == Types.Number) {
+                    char = value.getProperty('.value').toString();
+
+                } else {
+                    // Not a very helpful error message
+                    throw new Error(Report.error(`String must consist of characters`, errorExpr.line, errorExpr.column, errorExpr.file));
+                }
+
+                // The strings MUST be one character in length
+                if (char.length != 1) {
+                    throw new Error(Report.error(`String must consist of characters`, errorExpr.line, errorExpr.column, errorExpr.file));
+                }
+
+                // JS doesn't have a native way to replace a char of a string
+                // Splits the string in two and joins it back together
+                str = str.substring(0, index) + char + str.substring(index + 1);
+                this.setProperty('.value', str);
+
+                break;
+
+            case Types.Array:
+                let arr = this.getProperty('.array');
+                if (index < 0) index += arr.length;
+
+                if (index >= arr.length || index < 0) {
+                    throw new Error(Report.error(`Index [${index}] out of bounds`, errorExpr.line, errorExpr.column, errorExpr.file));
+                }
+
+                // Much simpler than the String one because Array items can be any Obj
+                arr[index] = value;
+
+                break;
+            
+            default:
+                console.log("This code should never be executed. Line 89 object.js");
+        }
     }
 
     // Equivalent of JS functions Map.keys(), Map.values() and Map.entries() for Cool objects

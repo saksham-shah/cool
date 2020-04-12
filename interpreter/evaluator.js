@@ -78,6 +78,29 @@ module.exports = class {
         }
     }
 
+    // Takes an expression and returns a string or number
+    // Used for square bracket properties as only strings and numbers can be properties
+    // RETURNS: String or Number Obj
+    static getNameFromExpression(context, expr, object) {
+        let nameObj = this.evaluate(context, expr);
+
+        // No need to do this if it is already a string
+        // Numbers are also excluded as they are used with Array-like objects
+        if (nameObj.type != Types.String && nameObj.type != Types.Number) {
+            let call = new FunctionCall(expr, 'toString');
+            nameObj = this.evaluateFunctionCall(context, call);
+        }
+
+        // If a Number is used, make sure the object is Array-like
+        if (nameObj.type == Types.Number) {
+            if (object.type != Types.String && object.type != Types.Array) {
+                throw new Error(Report.error(`Properties of non-Array-like objects cannot be Numbers`, expr.line, expr.column, expr.file));
+            }
+        }
+
+        return nameObj;
+    }
+
     // All 'evaluate' methods return an Obj
 
     // RETURNS: Obj set in the assignment
@@ -102,8 +125,22 @@ module.exports = class {
                 throw new Error(Report.error(`Cannot set property of undefined object`, assignment.line, assignment.column, assignment.file));
             }
 
-            // Assign the value to the property
-            obj.setProperty(assignment.identifier, value);
+            let identifier = assignment.identifier;
+            let nameObj = undefined;
+
+            // Square bracket properties - e.g. Console["print"]() is the same as Console.print()
+            if (identifier instanceof Expression) {
+                nameObj = this.getNameFromExpression(context, identifier, obj);
+                identifier = nameObj.getProperty('.value');
+            }
+
+            if (nameObj == undefined || nameObj.type == Types.String) {
+                // Assign the value to the property
+                obj.setProperty(identifier, value);
+            } else {
+                // The identifier is a number
+                obj.setArrayProperty(identifier, value, assignment.identifier);
+            }
         }
 
         return value;
@@ -180,11 +217,31 @@ module.exports = class {
         if (call.object != undefined) {
             // Looks for the function in the object
             object = this.evaluate(context, call.object);
-            func = object.getProperty(call.name);
 
-            if (func.type != Types.Function) {
-                throw new Error(Report.error(`${call.name} is not a method of the ${object.type} class`, call.line, call.column, call.file));
+            let functionName = call.name;
+            let nameObj = undefined;
+
+            // Square bracket properties - e.g. Console["print"]() is the same as Console.print()
+            if (functionName instanceof Expression) {
+                nameObj = this.getNameFromExpression(context, functionName, object);
+                functionName = nameObj.getProperty('.value');
             }
+
+            if (nameObj == undefined || nameObj.type == Types.String) {
+                func = object.getProperty(functionName);
+
+                if (func.type != Types.Function) {
+                    throw new Error(Report.error(`${functionName} is not a method of the ${object.type} class`, call.line, call.column, call.file));
+                }
+            } else {
+                // Function name is a number, meaning it is an item of an array
+                func = object.getArrayProperty(functionName, call.name);
+
+                if (func.type != Types.Function) {
+                    throw new Error(Report.error(`Object at index [${functionName}] is not a function`, call.line, call.column, call.file));
+                }
+            }
+            
         } else {
             // If there is no calling object, looks for the function in the current scope
             object = context.self;
@@ -198,7 +255,7 @@ module.exports = class {
         if (func instanceof Obj) {
             func = func.getProperty('.function');
         } else {
-            console.log('something is very wrong line 162 evaluator.js')
+            console.log('something is very wrong line 258 evaluator.js')
         }
 
         return this.evaluateFunctionCallImpl(context, object, func, call);
@@ -291,11 +348,22 @@ module.exports = class {
             // Like assignments, this refers to a property of an object
             let obj = this.evaluate(context, reference.object);
 
-            // if (obj.type == Types.Undefined) {
-            //     throw new Error(Report.error(`Cannot get property of undefined object`, reference.line, reference.column, reference.file));
-            // }
+            let identifier = reference.identifier;
+            let nameObj = undefined;
 
-            value = obj.getProperty(reference.identifier);
+            // Square bracket properties - e.g. Console["print"]() is the same as Console.print()
+            if (identifier instanceof Expression) {
+                nameObj = this.getNameFromExpression(context, identifier, obj);
+                identifier = nameObj.getProperty('.value');
+            }
+
+            if (nameObj == undefined || nameObj.type == Types.String) {
+                // Get the property of the object
+                value = obj.getProperty(identifier);
+            } else {
+                // Indentifier is a number
+                value = obj.getArrayProperty(identifier, reference.identifier);
+            }
         }
 
         // UNSURE if this is needed at all

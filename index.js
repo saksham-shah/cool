@@ -16,7 +16,8 @@ const ConsoleClass = require('./interpreter/std/console');
 
 let codeText;
 
-const filename = 'examples/fibonacci.cool';
+// const filename = 'code.cool';
+const filename = 'examples/division.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -31,15 +32,9 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program.expressions);
+    // console.log(program.expressions[2].args[0]);
 
     let context = new Context();
-    // context.addClass(new ObjectClass());
-    // context.addClass(new ClassClass());
-    // context.addClass(new FunctionClass());
-    // context.addClass(new IntClass());
-    // context.addClass(new StringClass());
-    // context.addClass(new UndefinedClass());
 
     context.defaultSelf();
 
@@ -54,30 +49,12 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     addClass(context, new StringClass());
     addClass(context, new ConsoleClass());
 
-    // console.log(context);
-
-    // context.addFunction(new Func('print', ['obj'], new NativeExpression(context => {
-    //     let call = new FunctionCall(new Reference('obj'), 'toString');
-
-    //     let str = Evaluator.evaluate(context, call);
-
-    //     console.log(str.getProperty('value'));
-
-    //     return context.environment.getValue('obj');
-    // })))
-
     let result = Evaluator.evaluate(context, program);
 
     context.environment.exitScope();
-
-    //console.log(context);
-
-
-    //console.log(result);
 });
 
 function addClass(context, klass) {
-    // context.addClass(klass);
     let classObj = Evaluator.evaluateClass(context, klass);
     context.environment.setValue(klass.name, classObj);
 }
