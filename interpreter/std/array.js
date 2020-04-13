@@ -203,6 +203,22 @@ module.exports = class extends Class {
             return result;
         })));
 
+        this.functions.set('forEach', new Func('forEach', ['func'], new NativeExpression((context, err) => {
+            let func = context.environment.getValue('func');
+            if (func.type != Types.Function) {
+                return Obj.create(Types.Undefined);
+            }
+
+            let array = context.self.getProperty('.value');
+
+            for (let item of array) {
+                let call = new FunctionCall(undefined, 'func', [item]);
+                Evaluator.evaluate(context, call);
+            }
+
+            return Obj.create(Types.Undefined);
+        })));
+
         // The length of the array
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
             let result = Obj.create(context, Types.Number);
@@ -216,23 +232,60 @@ module.exports = class extends Class {
             return bool;
         })));
 
-        this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
-            let output = '[';
+        this.functions.set('toString', new Func('toString', ['level'], new NativeExpression(context => {
+            let output;
             let array = context.self.getProperty('.value');
 
-            // Convert each item to a string and join it with commas
-            for (let i = 0; i < array.length; i++) {
-                if (i > 0) {
-                    output += ', '
+            // The level is how deep in the object we are
+            let level = context.environment.getValue('level');
+            if (level.type == Types.Number) {
+                level = level.getProperty('.value');
+            } else {
+                level = 0;
+            }
+
+            if (level < 3) {
+                output = '[';
+                // Convert each item to a string and join it with commas
+                for (let i = 0; i < array.length; i++) {
+                    if (i > 0) {
+                        output += ', '
+                    }
+
+                    // Calling 'toString' on each item of the array
+                    let call = new FunctionCall(new Reference(new NumberLiteral(i), new This()), 'toString', [new NumberLiteral(level + 1)]);
+                    let str = Evaluator.evaluate(context, call);
+                    output += str.getProperty('.value');
                 }
 
-                // Calling 'toString' on each item of the array
-                let call = new FunctionCall(new Reference(new NumberLiteral(i), new This()), 'toString');
-                let str = Evaluator.evaluate(context, call);
-                output += str.getProperty('.value');
+                output += ']';
+
+                // This code below does work, but it's too inefficient to be worth using
+
+                // let str = Obj.create(context, Types.String);
+                // str.setProperty('.value', '[');
+                // context.environment.setValue('.output', str);
+
+                // let call = new FunctionCall(new This(), 'forEach', [new Func(undefined, ['item'], new NativeExpression((context, err) => {
+                //     let toStrCall = new FunctionCall(new Reference('item'), 'toString');
+                //     // let itemStr = Evaluator.evaluate(context, toStrCall);
+
+                //     let appendStrCall = new FunctionCall(new Reference('.output'), '+', [toStrCall]);
+
+                //     let outputStr = Evaluator.evaluate(context, appendStrCall);
+                //     context.environment.setValue('.output', outputStr);
+                // }))]);
+
+                // Evaluator.evaluate(context, call);
+
+                // let outputObj = context.environment.getValue('.output');
+                // output = outputObj.getProperty('.value') + ']';
+                
+            } else {
+                // Prevents issues with recursive objects
+                output = `Array<${array.length}>`
             }
             
-            output += ']';
             let str = Obj.create(context, Types.String);
             str.setProperty('.value', output);
             return str;

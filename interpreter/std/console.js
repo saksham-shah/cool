@@ -20,13 +20,32 @@ module.exports = class extends Class {
         this.superClass = Types.Object;
 
         // Outputs to the console
-        this.statics.set('print', new Func('print', ['obj'], new NativeExpression(context => {
-            let call = new FunctionCall(new Reference('obj'), 'toString');
-            let str = Evaluator.evaluate(context, call);
+        this.statics.set('print', new Func('print', [], new NativeExpression(context => {
+            // let call = new FunctionCall(new Reference('obj'), 'toString');
+            // let str = Evaluator.evaluate(context, call);
     
-            console.log('OUTPUT: ' + str.getProperty('.value'));
+            // console.log('OUTPUT: ' + str.getProperty('.value'));
     
-            return context.environment.getValue('obj');
+            // return context.environment.getValue('obj');
+            
+            let output = '';
+            let args = context.environment.getValue('arguments').getProperty('.value');
+
+            // Convert each item to a string and join it with spaces
+            for (let i = 0; i < args.length; i++) {
+                if (i > 0) {
+                    output += ' '
+                }
+
+                // Calling 'toString' on each item of the arguments array
+                let call = new FunctionCall(new Reference(new NumberLiteral(i), new Reference('arguments')), 'toString');
+                
+                let str = Evaluator.evaluate(context, call);
+
+                output += str.getProperty('.value');
+            }
+
+            console.log('OUTPUT: ' + output);
         })));
 
         // Just a test - the Math class will have this

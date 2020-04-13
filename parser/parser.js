@@ -155,7 +155,7 @@ module.exports = class {
     // For the above, parseValue would parse the number 3 and ignore the addition expression
     // RETURNS: Expression
     parseExpression() {
-        return this.parseBooleanExpression();
+        return this.parseOr();
     }
 
     // Checks if a definition is next and parses appropriately
@@ -183,12 +183,13 @@ module.exports = class {
     //     return this.parseBinaryExpression(this.booleanIsNext, this.parseComparison);
     // }
 
-    // Currently the lowest priority operation
+    // UNUSED
     // RETURNS: Expression
     parseBooleanExpression() {
         return this.parseBinaryExpression(this.booleanIsNext, this.parseOr);
     }
 
+    // Currently the lowest priority operation
     // RETURNS: Expression
     parseOr() {
         return this.parseBinaryExpression(this.orIsNext, this.parseAnd);

@@ -1,11 +1,9 @@
 extract Console
 
-array = []
-
-while array < 10 array += array.length()
-
-
-print(array.length())
+array = while counter < 10 {
+    (counter += 1) * 2
+}
 
 
-print(array);
+print(array)
+//array.forEach(print)

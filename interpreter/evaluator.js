@@ -17,6 +17,11 @@ module.exports = class {
 
     // RETURNS: Obj
     static evaluate(context, expression) {
+
+        if (!(expression instanceof Expression)) {
+            return expression;
+        }
+
         if (expression.isArrayLiteral()) {
             return this.evaluateArrayLiteral(context, expression);
         }
@@ -310,11 +315,17 @@ module.exports = class {
             context.environment.setValue(func.params[i], thisArgument);
         }
 
+        // Create the arguments array
+        let arrayObj = Obj.create(context, Types.Array);
+        arrayObj.setProperty('.value', argObjects);
+        context.environment.setValue('arguments', arrayObj, true);
+
         // Set the 'self' of the context to the object that called the function
         let self = context.self;
         context.self = object;
 
         let value = this.evaluate(context, func.body);
+        if (value == undefined) value = Obj.create(context, Types.Undefined);
 
         context.environment.exitScope();
 
@@ -413,23 +424,25 @@ module.exports = class {
         return this.evaluateFunctionCall(context, call);
     }
 
-    // RETURNS: Obj
+    // RETURNS: Array Obj
     static evaluateWhile(context, whileExpr) {
         // Initial condition evaluation
         let call = new FunctionCall(whileExpr.condition, 'toBoolean');
         let bool = this.evaluate(context, call);
 
-        // Return undefined by default (if the while loop never runs)
-        let value = Obj.create(context, Types.Undefined);
+        // Returns an array of the evaluations of each loop
+        let value = Obj.create(context, Types.Array);
+        let array = [];
 
         while (bool.getProperty('.value')) {
-            value = this.evaluate(context, whileExpr.body);
+            array.push(this.evaluate(context, whileExpr.body));
 
             // Redo the condition after every loop
             call = new FunctionCall(whileExpr.condition, 'toBoolean');
             bool = this.evaluate(context, call);
         }
 
+        value.setProperty('.value', array);
         return value;
     }
 

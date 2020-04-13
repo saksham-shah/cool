@@ -71,7 +71,16 @@ module.exports = class {
     // If an identifier has been defined in a previous scope, it acts as a global variable
     // In that case, an assignment would set variable in the previous scope to the value
     // And it wouldn't be in the current scope
-    setValue(identifier, value) {
+    setValue(identifier, value, newScope = false) {
+        // If newScope is true, it forces a new variable to be created
+        // Rather than changing a variable in a higher scope
+        // It is the equivalent of using 'let' inside a JS function, which creates a new local variable
+        // Instead of changing a global one
+        if (newScope) {
+            this.scope.set(identifier, value);
+            return;
+        }
+
         let scope = this.scope;
         let counter = this.scopeCounter;
 
