@@ -49,7 +49,7 @@ module.exports = class Obj {
                 return charObj;
 
             case Types.Array:
-                let arr = this.getProperty('.array');
+                let arr = this.getProperty('.value');
                 // Allow reverse array indexes
                 if (index < 0) index += arr.length;
 
@@ -104,7 +104,7 @@ module.exports = class Obj {
                 break;
 
             case Types.Array:
-                let arr = this.getProperty('.array');
+                let arr = this.getProperty('.value');
                 if (index < 0) index += arr.length;
 
                 if (index >= arr.length || index < 0) {

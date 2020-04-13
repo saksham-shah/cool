@@ -172,6 +172,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', left.getProperty('.value') == right.getProperty('.value').length);
+                    break;
                 case Types.Boolean:
                     result.setProperty('.value', left.getProperty('.value') > 0);
                     break;
@@ -203,6 +206,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', left.getProperty('.value') > right.getProperty('.value').length);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', left.getProperty('.value') > right.getProperty('.value'));
                     break;
@@ -226,6 +232,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', left.getProperty('.value') >= right.getProperty('.value').length);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', left.getProperty('.value') >= right.getProperty('.value'));
                     break;
@@ -249,6 +258,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', left.getProperty('.value') < right.getProperty('.value').length);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', left.getProperty('.value') < right.getProperty('.value'));
                     break;
@@ -272,6 +284,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', left.getProperty('.value') <= right.getProperty('.value').length);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', left.getProperty('.value') <= right.getProperty('.value'));
                     break;

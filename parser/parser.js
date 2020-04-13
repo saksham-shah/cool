@@ -2,6 +2,7 @@ const Lexer = require('../lexer/lexer')
 const TokenType = require('../lexer/tokenType');
 
 // Expressions
+const ArrayLiteral = require('../ast/array');
 const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
@@ -63,6 +64,9 @@ module.exports = class {
 
         } else if (this.isNext(TokenType.OpenBracket)) {
             value = this.parseBracket();
+
+        } else if (this.isNext(TokenType.OpenSquare)) {
+            value = this.parseArray();
 
         } else if (this.isNext(TokenType.OpenBrace)) {
             value = this.parseBlock();
@@ -255,6 +259,31 @@ module.exports = class {
 
         return value;
     }
+
+    // RETURNS: ArrayLiteral Expression
+    parseArray() {
+        let token = this.currentToken;
+
+        this.expect(TokenType.OpenSquare);
+
+        let items = [];
+
+        // Keep pushing items to the array
+        while(!this.isNext(TokenType.CloseSquare)) {
+            items.push(this.parseExpression());
+            
+            if (!this.isNext(TokenType.CloseSquare)) {
+                this.expect(TokenType.Comma);
+            }
+        }
+
+        this.expect(TokenType.CloseSquare);
+
+        let array = new ArrayLiteral(items);
+        array.copyLocation(token);
+
+        return array;
+    }
    
     // RETURNS: Assignment Expression
     parseAssignment(object, identifier) {
@@ -331,6 +360,7 @@ module.exports = class {
 
         let args = [];
 
+        // Similar to parseArray
         while(!this.isNext(TokenType.CloseBracket)) {
             args.push(this.parseExpression());
             

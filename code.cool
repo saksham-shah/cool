@@ -1,8 +1,11 @@
 extract Console
-extract String
 
-self = "self"
+array = []
 
-self.self = self
+while array < 10 array += array.length()
 
-print(self.self.self["self"][self[self[self.self]]].self)
+
+print(array.length())
+
+
+print(array);

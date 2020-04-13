@@ -9,6 +9,10 @@ module.exports = class extends AstBase {
         return true;
     }
 
+    isArrayLiteral() {
+        return false;
+    }
+
     isAssignment() {
         return false;
     }

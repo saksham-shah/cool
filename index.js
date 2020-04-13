@@ -6,6 +6,7 @@ const Evaluator = require('./interpreter/evaluator');
 const Context = require('./interpreter/context');
 
 const ObjectClass = require('./interpreter/std/obj');
+const ArrayClass = require('./interpreter/std/array');
 const BooleanClass = require('./interpreter/std/boolean');
 const ClassClass = require('./interpreter/std/class');
 const FunctionClass = require('./interpreter/std/func');
@@ -16,8 +17,8 @@ const ConsoleClass = require('./interpreter/std/console');
 
 let codeText;
 
-// const filename = 'code.cool';
-const filename = 'examples/division.cool';
+const filename = 'code.cool';
+// const filename = 'examples/division.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -47,6 +48,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     addClass(context, new FunctionClass());
     addClass(context, new NumberClass());
     addClass(context, new StringClass());
+    addClass(context, new ArrayClass());
     addClass(context, new ConsoleClass());
 
     let result = Evaluator.evaluate(context, program);

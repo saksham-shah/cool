@@ -17,6 +17,10 @@ module.exports = class {
 
     // RETURNS: Obj
     static evaluate(context, expression) {
+        if (expression.isArrayLiteral()) {
+            return this.evaluateArrayLiteral(context, expression);
+        }
+
         if (expression.isAssignment()) {
             return this.evaluateAssignment(context, expression);
         }
@@ -102,6 +106,20 @@ module.exports = class {
     }
 
     // All 'evaluate' methods return an Obj
+
+    // RETURNS: Array Obj
+    static evaluateArrayLiteral(context, array) {
+        let obj = Obj.create(context, Types.Array);
+        let arrayItems = [];
+
+        // Evaluate each item and push it to the array
+        for (let item of array.items) {
+            arrayItems.push(this.evaluate(context, item));
+        }
+
+        obj.setProperty('.value', arrayItems);
+        return obj;
+    }
 
     // RETURNS: Obj set in the assignment
     static evaluateAssignment(context, assignment) {

@@ -148,6 +148,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', true);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', true);
                     break;
@@ -170,6 +173,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', true);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', true);
                     break;
@@ -192,6 +198,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', true);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', true);
                     break;
@@ -214,6 +223,9 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', true);
+                    break;
                 case Types.Number:
                     result.setProperty('.value', true);
                     break;

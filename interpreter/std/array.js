@@ -2,6 +2,7 @@ const Class = require('../../ast/class');
 const Func = require('../../ast/func');
 const FunctionCall = require('../../ast/functioncall');
 const NativeExpression = require('../../ast/nativeexpression');
+const NumberLiteral = require('../../ast/number');
 const Reference = require('../../ast/reference');
 const This = require('../../ast/this');
 
@@ -16,63 +17,31 @@ module.exports = class extends Class {
     constructor() {
         super();
 
-        this.name = Types.String;
+        this.name = Types.Array;
 
         this.superClass = Types.Object;
 
-        // Functions for each operator, similar to the Number class
-        this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
-            let right = context.environment.getValue('right');
-            let left = context.self;
-            let result;
+        // Add an item at the end of the array
+        this.functions.set('+', new Func('+', ['right'], new NativeExpression(context => {
+            let obj = context.environment.getValue('right');
+            let arr = context.self.getProperty('.value');
+            arr.push(obj);
 
-            switch (right.type) {
-                case Types.Number:
-                    result = Obj.create(context, Types.String);
-                    result.setProperty('.value', left.getProperty('.value') + right.getProperty('.value'));
-                    break;
-                case Types.String:
-                    result = Obj.create(context, Types.String);
-                    result.setProperty('.value', left.getProperty('.value') + right.getProperty('.value'));
-                    break;
-                case Types.Undefined:
-                    result = Obj.create(context, Types.String);
-                    result.setProperty('.value', left.getProperty('.value'));
-                    break;
-                default:
-                    err(`Invalid use of operator '+`);
-                    break;
-            }
-
-            return result;
+            return context.self;
         })));
 
-        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
-            let right = context.environment.getValue('right');
-            let left = context.self;
-            let result;
-
-            switch (right.type) {
-                case Types.Number:
-                    // Repeats the string a specified number of times
-                    result = Obj.create(context, Types.String);
-                    let str = '';
-                    let substr = left.getProperty('.value');
-                    for (var i = 0; i < right.getProperty('.value'); i++) {
-                        str += substr;
-                    }
-                    result.setProperty('.value', str);
-                    break;
-                case Types.Undefined:
-                    result = Obj.create(context, Types.String);
-                    result.setProperty('.value', left.getProperty('.value'));
-                    break;
-                default:
-                    err(`Invalid use of operator '*'`);
-                    break;
+        // Remove an item at a particular index
+        this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
+            let obj = context.environment.getValue('right');
+            if (obj.type != Types.Number) {
+                err(`Invalid use of operator '-' (Array index to remove must be Number)`)
             }
 
-            return result;
+            let arr = context.self.getProperty('.value');
+            let index = obj.getProperty('.value');
+            let removedItem = arr.splice(index, 1);
+
+            return removedItem[0];
         })));
 
         // Boolean operators
@@ -105,14 +74,14 @@ module.exports = class extends Class {
             let result = Obj.create(context, Types.Boolean);
 
             switch (right.type) {
+                case Types.Array:
+                    result.setProperty('.value', left.getProperty('.value') == right.getProperty('.value'));
+                    break;
                 case Types.Boolean:
                     result.setProperty('.value', left.getProperty('.value').length > 0);
                     break;
                 case Types.Number:
                     result.setProperty('.value', left.getProperty('.value').length == right.getProperty('.value'));
-                    break;
-                case Types.String:
-                    result.setProperty('.value', left.getProperty('.value') == right.getProperty('.value'));
                     break;
                 default:
                     result.setProperty('.value', false);
@@ -234,7 +203,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        // The length of the string
+        // The length of the array
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
             let result = Obj.create(context, Types.Number);
             result.setProperty('.value', context.self.getProperty('.value').length);
@@ -247,10 +216,25 @@ module.exports = class extends Class {
             return bool;
         })));
 
-        // It's already a string
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
+            let output = '[';
+            let array = context.self.getProperty('.value');
+
+            // Convert each item to a string and join it with commas
+            for (let i = 0; i < array.length; i++) {
+                if (i > 0) {
+                    output += ', '
+                }
+
+                // Calling 'toString' on each item of the array
+                let call = new FunctionCall(new Reference(new NumberLiteral(i), new This()), 'toString');
+                let str = Evaluator.evaluate(context, call);
+                output += str.getProperty('.value');
+            }
+            
+            output += ']';
             let str = Obj.create(context, Types.String);
-            str.setProperty('.value', '\'' + context.self.getProperty('.value') + '\'');
+            str.setProperty('.value', output);
             return str;
         })));
     }

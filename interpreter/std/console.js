@@ -22,7 +22,6 @@ module.exports = class extends Class {
         // Outputs to the console
         this.statics.set('print', new Func('print', ['obj'], new NativeExpression(context => {
             let call = new FunctionCall(new Reference('obj'), 'toString');
-    
             let str = Evaluator.evaluate(context, call);
     
             console.log('OUTPUT: ' + str.getProperty('.value'));
