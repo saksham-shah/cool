@@ -47,6 +47,7 @@ module.exports = {
     // Other
     Dot: '.',
     Comma: ',',
+    Arrow: '=>',
 
     // Keywords
     // Var: 'var',
@@ -61,9 +62,11 @@ module.exports = {
     While: 'while',
     For: 'for',
 
-    Undefined: 'Undefined',
+    Undefined: 'undefined',
 
+    // Definitions
     Extract: 'extract',
+    Function: 'function',
 
     // Special
     Newline: 'new line',

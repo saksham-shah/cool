@@ -68,6 +68,10 @@ module.exports = class extends AstBase {
     isUnaryExpression() {
         return false;
     }
+    
+    isUndefinedLiteral() {
+        return false;
+    }
 
     isWhile() {
         return false;

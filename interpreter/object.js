@@ -184,6 +184,11 @@ module.exports = class Obj {
     // RETURNS: Obj (Undefined Obj if the function isn't found)
     getFunction(functionName) {
         let klass = this.context.environment.getValue(this.type);
+
+        if (klass.type != Types.Class) {
+            throw new Error(Report.error(`${this.type} is not a Class - it may have been redefined by accident`))
+        }
+
         klass = klass.getProperty('.class');
 
         let func = klass.getMethod(this.context, functionName);

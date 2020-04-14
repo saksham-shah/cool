@@ -1,0 +1,12 @@
+// Extract the 'print' function into the global scope
+extract Console
+
+n = 5
+
+// Calculates the factorial of a number
+print("Factorial of " + n)
+
+// Recursive factorial function
+factorial = num => if (num == 1) 1 else num * factorial(num - 1)
+
+print(factorial(n))

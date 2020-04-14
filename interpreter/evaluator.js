@@ -82,6 +82,10 @@ module.exports = class {
             return this.evaluateUnaryExpression(context, expression);
         }
 
+        if (expression.isUndefinedLiteral()) {
+            return this.evaluateUndefinedLiteral(context, expression);
+        }
+
         if (expression.isWhile()) {
             return this.evaluateWhile(context, expression);
         }
@@ -424,6 +428,11 @@ module.exports = class {
         return this.evaluateFunctionCall(context, call);
     }
 
+    // RETURNS: Undefined Obj
+    static evaluateUndefinedLiteral(context, undef) {
+        return Obj.create(context, Types.Undefined);
+    }
+
     // RETURNS: Array Obj
     static evaluateWhile(context, whileExpr) {
         // Initial condition evaluation
@@ -451,6 +460,9 @@ module.exports = class {
     static define(context, definition) {
         if (definition.isExtract()) {
             this.defineExtract(context, definition);
+
+        } else if (definition.isFunction()) {
+            this.defineFunction(context, definition);
         }
     }
 
@@ -461,17 +473,19 @@ module.exports = class {
             throw new Error(Report.error(`Extract must refer to a class in the current context`, extract.line, extract.column, extract.file));
         }
 
-        // klass = klass.getProperty('.class');
-
-        // for (let func of klass.statics) {
-        //     let funcObj = this.evaluateFunction(context, func);
-        //     context.environment.setValue(func.name, funcObj);
-        // }
-
         // Go through all properties of the class and add them to the current scope
         let keyValuePairs = klass.getKeysOrValues();
         for (let pair of keyValuePairs) {
             context.environment.setValue(pair[0], pair[1]);
         }
+    }
+
+    static defineFunction(context, func) {
+        let funcObj = Obj.create(context, Types.Function);
+        funcObj.setProperty('.name', func.name);
+        funcObj.setProperty('.function', func);
+
+        // Set the function
+        context.environment.setValue(func.name, funcObj);
     }
 }

@@ -12,4 +12,8 @@ module.exports = class extends AstBase {
     isExtract() {
         return false;
     }
+
+    isFunction() {
+        return false;
+    }
 }

@@ -1,9 +1,15 @@
 extract Console
 
-array = while counter < 10 {
-    (counter += 1) * 2
+sum = () => {
+    total
+    arguments.forEach(item => total += item)
+    print(total)
 }
 
+sumDef(1, 2, 3, 4, 5, 6)
 
-print(array)
-//array.forEach(print)
+function sumDef () {
+    total
+    arguments.forEach(item => total += item)
+    print(total)
+}

@@ -48,8 +48,8 @@ module.exports = class {
     // Generates the next token
     // RETURNS: Token
     nextToken() {
-        // If there are tokens in the buffer, return them
-        if (this.buffer.length > 0) return this.buffer.pop();
+        // If there are tokens in the buffer, return the the first one
+        if (this.buffer.length > 0) return this.buffer.splice(0, 1)[0];
 
         return this.readToken();
     }
@@ -258,6 +258,11 @@ module.exports = class {
             case '=':
                 if (nextChar == '=') {
                     return new Token(TokenType.DoubleEquals, '==', this.line, column, this.file);
+                }
+                if (nextChar == '>') {
+                    this.counter++;
+                    this.column++;
+                    return new Token(TokenType.Arrow, '=>', this.line, column, this.file);
                 }
                 return new Token(TokenType.Equal, '=', this.line, column, this.file);
             

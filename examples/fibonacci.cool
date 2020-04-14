@@ -22,3 +22,15 @@ while counter < n {
 
     counter += 1
 }
+
+// Alternatively...
+
+// a = 0 b = 1
+
+// n = 10
+
+// print(while 1 + n -= 1 {
+//     temp = b
+//     b += a
+//     a = temp
+// })

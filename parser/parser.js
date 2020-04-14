@@ -8,15 +8,18 @@ const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
 const BooleanLiteral = require('../ast/boolean');
 const FunctionCall = require('../ast/functioncall');
+const Func = require('../ast/func');
 const IfElse = require('../ast/ifelse');
 const NumberLiteral = require('../ast/number');
 const Reference = require('../ast/reference');
 const StringLiteral = require('../ast/string');
 const UnaryExpression = require('../ast/unaryexpression');
+const UndefinedLiteral = require('../ast/undefined');
 const While = require('../ast/while');
 
 // Definitions
 const Extract = require('../ast/extract');
+const FuncDef = require('../ast/funcdef');
 
 const Report = require('../utils/report');
 
@@ -50,6 +53,11 @@ module.exports = class {
 
             this.currentToken = this.lexer.nextToken();
 
+        } else if (this.isNext(TokenType.Undefined)) {
+            value = new UndefinedLiteral();
+
+            this.currentToken = this.lexer.nextToken();
+
         } else if (this.isNext(TokenType.If)) {
             value = this.parseIfElse();
 
@@ -60,7 +68,7 @@ module.exports = class {
             let operator = token.value;
             this.currentToken = this.lexer.nextToken();
 
-            value = new UnaryExpression(operator, this.parseValue());
+            value = new UnaryExpression(operator, this.parseProperty());
 
         } else if (this.isNext(TokenType.OpenBracket)) {
             value = this.parseBracket();
@@ -79,6 +87,8 @@ module.exports = class {
                 value = this.parseAssignment();
             } else if (nextToken.type == TokenType.OpenBracket) {
                 value = this.parseFunctionCall();
+            } else if (nextToken.type == TokenType.Arrow) {
+                value = this.parseFunctionAnonymous();
             } else {
                 value = new Reference(this.expect(TokenType.Identifier).value);
             }
@@ -167,6 +177,8 @@ module.exports = class {
             this.expect(TokenType.Extract);
             let classToExtract = this.parseProperty();
             value = new Extract(classToExtract);
+        } else if (this.isNext(TokenType.Function)) {
+            value = this.parseFunctionDefinition();
         }
 
         if (value == null) {
@@ -328,6 +340,18 @@ module.exports = class {
 
     // RETURNS: Expression
     parseBracket() {
+        let nextToken;
+        do {
+            nextToken = this.lexer.lookahead();
+        } while (nextToken.type != TokenType.CloseBracket);
+
+        nextToken = this.lexer.lookahead();
+        // Means it is an anonymous function
+        if (nextToken.type == TokenType.Arrow) {
+            return this.parseFunctionAnonymous();
+        }
+
+        // Otherwise it's a normal bracket, like 2 * (1 + 8)
         this.expect(TokenType.OpenBracket);
 
         let expression = this.parseExpression();
@@ -335,6 +359,65 @@ module.exports = class {
         this.expect(TokenType.CloseBracket);
 
         return expression;
+    }
+
+    // RETURNS: Function Expression
+    parseFunctionAnonymous() {
+        let token = this.currentToken;
+
+        let params = this.parseParameters();
+
+        this.expect(TokenType.Arrow);
+
+        let body = this.parseExpression();
+
+        let func = new Func(undefined, params, body);
+
+        func.copyLocation(token);
+        return func;
+    }
+
+    // RETURNS: Function Definition
+    parseFunctionDefinition() {
+        let token = this.currentToken;
+
+        this.expect(TokenType.Function);
+
+        let name = this.expect(TokenType.Identifier).value;
+        let params = this.parseParameters(false);
+        let body = this.parseExpression();
+
+        let func = new FuncDef(name, params, body);
+
+        func.copyLocation(token);
+        return func;
+    }
+
+    // Parses parameters for function definitions
+    // RETURNS: Array of Strings (Identifiers)
+    parseParameters(allowNoBrackets = true) {
+        let params = [];
+        
+        // Sometimes if there is only one parameter, you don't need to use brackets
+        if (!this.isNext(TokenType.OpenBracket) && allowNoBrackets) {
+            params.push(this.expect(TokenType.Identifier).value);
+            return params;
+        }
+        
+        this.expect(TokenType.OpenBracket);
+
+        // Similar to parseArray
+        while (!this.isNext(TokenType.CloseBracket)) {
+            params.push(this.expect(TokenType.Identifier).value);
+
+            if (!this.isNext(TokenType.CloseBracket)) {
+                this.expect(TokenType.Comma);
+            }
+        }
+
+        this.expect(TokenType.CloseBracket);
+
+        return params;
     }
 
     // RETURNS: Function Call Expression
@@ -361,7 +444,7 @@ module.exports = class {
 
         let args = [];
 
-        // Similar to parseArray
+        // Similar to parseArray and parseParameters
         while(!this.isNext(TokenType.CloseBracket)) {
             args.push(this.parseExpression());
             
@@ -375,6 +458,7 @@ module.exports = class {
         return args;
     }
 
+    // RETURNS: IfElse Expression
     parseIfElse() {
         let token = this.currentToken;
 
@@ -392,10 +476,10 @@ module.exports = class {
         let ifElse =  new IfElse(condition, thenBlock, elseBlock);
 
         ifElse.copyLocation(token);
-
         return ifElse;
     }
 
+    // RETURNS: While Expression
     parseWhile() {
         let token = this.currentToken;
 
@@ -407,7 +491,6 @@ module.exports = class {
         let whileExpr =  new While(condition, body);
 
         whileExpr.copyLocation(token);
-
         return whileExpr;
     }
 
