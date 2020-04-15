@@ -38,7 +38,8 @@ module.exports = class extends Class {
                 }
 
                 // Calling 'toString' on each item of the arguments array
-                let call = new FunctionCall(new Reference(new NumberLiteral(i), new Reference('arguments')), 'toString');
+                let call = new FunctionCall(new Reference('toString', new Reference(new NumberLiteral(i), new Reference('arguments'))));
+                // let call = new FunctionCall(new Reference(new NumberLiteral(i), new Reference('arguments')), 'toString');
                 
                 let str = Evaluator.evaluate(context, call);
 

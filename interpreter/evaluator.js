@@ -100,7 +100,7 @@ module.exports = class {
         // No need to do this if it is already a string
         // Numbers are also excluded as they are used with Array-like objects
         if (nameObj.type != Types.String && nameObj.type != Types.Number) {
-            let call = new FunctionCall(expr, 'toString');
+            let call = new FunctionCall(new Reference('toString', expr));
             nameObj = this.evaluateFunctionCall(context, call);
         }
 
@@ -138,7 +138,7 @@ module.exports = class {
         } else {
             // Other operators like '+='
             // Checks the first character and calls the apprpriate function
-            let call = new FunctionCall(new Reference(assignment.identifier, assignment.object), assignment.operator[0], [assignment.value]);
+            let call = new FunctionCall(new Reference(assignment.operator[0], new Reference(assignment.identifier, assignment.object)), assignment.operator[0], [assignment.value]);
             value = this.evaluateFunctionCall(context, call);
         }
 
@@ -176,7 +176,7 @@ module.exports = class {
     // RETURNS: Result of the binary expression
     static evaluateBinaryExpression(context, expression) {
         // The built-in data types have functions for each of the main operators (e.g. +, -, *)
-        let call = new FunctionCall(expression.left, expression.operator, [expression.right]);
+        let call = new FunctionCall(new Reference(expression.operator, expression.left), expression.operator, [expression.right]);
         call.copyLocation(expression);
         return this.evaluateFunctionCall(context, call);
     }
@@ -236,9 +236,62 @@ module.exports = class {
         return funcObj;
     }
 
+    static evaluateFunctionCall(context, call) {
+        if (!(call.reference.isReference() || call.reference.isAssignment() || call.reference.isFunctionCall())) {
+            throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
+        }
+
+        let object;
+        let func = this.evaluate(context, call.reference);
+        let name = call.reference.identifier;
+        
+        if (call.reference.object != undefined) {
+            object = this.evaluate(context, call.reference.object);
+
+            let nameObj = undefined;
+            if (name instanceof Expression) {
+                nameObj = this.getNameFromExpression(context, name, object);
+                name = nameObj.getProperty('.value');
+            }
+
+            if (func.type != Types.Function) {
+                if (name == undefined) {
+                    throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
+                } else if (nameObj == undefined || nameObj.type == Types.String) {
+                    throw new Error(Report.error(`${name} is not a method of the ${object.type} class`, call.line, call.column, call.file));
+                } else {
+                    throw new Error(Report.error(`Object at index [${name}] is not a function`, call.line, call.column, call.file));
+                }
+            }
+        } else {
+            object = context.self;
+
+            if (func.type != Types.Function) {
+                if (name == undefined) {
+                    throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
+                } else {
+                    throw new Error(Report.error(`${name} is not a function in the current scope`, call.line, call.column, call.file));
+                }
+            }
+        }
+
+        // if (func.type != Types.Function) {
+        //     console.log(call)
+        //     throw new Error(Report.error(`This is not a function`, call.line, call.column, call.file));
+        // }
+
+        if (func instanceof Obj) {
+            func = func.getProperty('.function');
+        } else {
+            console.log('something is very wrong line 258 evaluator.js')
+        }
+
+        return this.evaluateFunctionCallImpl(context, object, func, call);
+    }
+
     // Searches for the appropriate function to call
     // RETURNS: Result of the function call
-    static evaluateFunctionCall(context, call) {
+    static evaluateFunctionCallOld(context, call) {
         let object, func;
 
         if (call.object != undefined) {
@@ -341,7 +394,7 @@ module.exports = class {
     // RETURNS: Obj
     static evaluateIfElse(context, ifElse) {
         // Determine whether the condition evaluates to true
-        let call = new FunctionCall(ifElse.condition, 'toBoolean');
+        let call = new FunctionCall(new Reference('toBoolean', ifElse.condition), 'toBoolean');
         let bool = this.evaluate(context, call);
         // Return undefined by default (e.g. if there is no else block and the condition is false)
         let value = Obj.create(context, Types.Undefined)
@@ -423,7 +476,7 @@ module.exports = class {
     // RETURNS: Result of the unary expression
     static evaluateUnaryExpression(context, expression) {
         // The built-in data types also have functions for unary operators (e.g. unary_+, unary_-)
-        let call = new FunctionCall(expression.expression, 'unary_' + expression.operator);
+        let call = new FunctionCall(new Reference('unary_' + expression.operator, expression.expression));
         call.copyLocation(expression);
         return this.evaluateFunctionCall(context, call);
     }
@@ -436,7 +489,7 @@ module.exports = class {
     // RETURNS: Array Obj
     static evaluateWhile(context, whileExpr) {
         // Initial condition evaluation
-        let call = new FunctionCall(whileExpr.condition, 'toBoolean');
+        let call = new FunctionCall(new Reference('toBoolean', whileExpr.condition));
         let bool = this.evaluate(context, call);
 
         // Returns an array of the evaluations of each loop
@@ -447,7 +500,7 @@ module.exports = class {
             array.push(this.evaluate(context, whileExpr.body));
 
             // Redo the condition after every loop
-            call = new FunctionCall(whileExpr.condition, 'toBoolean');
+            call = new FunctionCall(new Reference('toBoolean', whileExpr.condition));
             bool = this.evaluate(context, call);
         }
 

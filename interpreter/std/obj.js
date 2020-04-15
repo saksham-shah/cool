@@ -16,7 +16,7 @@ module.exports = class extends Class {
 
         // Boolean operators
         this.functions.set(TokenType.And, new Func(TokenType.And, ['right'], new NativeExpression(context => {
-            let call = new FunctionCall(new Reference('right'), 'toBoolean');
+            let call = new FunctionCall(new Reference('toBoolean', new Reference('right')), 'toBoolean');
             return Evaluator.evaluate(context, call);
         })));
 

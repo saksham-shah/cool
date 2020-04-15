@@ -33,6 +33,10 @@ module.exports = class extends AstBase {
         return false;
     }
 
+    isClassCall() {
+        return false;
+    }
+
     isFunction() {
         return false;
     }

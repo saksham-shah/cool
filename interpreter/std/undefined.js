@@ -111,7 +111,7 @@ module.exports = class extends Class {
         })));
 
         this.functions.set(TokenType.Or, new Func(TokenType.Or, ['right'], new NativeExpression(context => {
-            let call = new FunctionCall(new Reference('right'), 'toBoolean');
+            let call = new FunctionCall(new Reference('toBoolean', new Reference('right')), 'toBoolean');
             return Evaluator.evaluate(context, call);
         })));
 
@@ -137,7 +137,7 @@ module.exports = class extends Class {
 
         // Opposite of the '==' function
         this.functions.set('!=', new Func('!=', ['right'], new NativeExpression(context => {
-            let call = new FunctionCall(new This(), '==', [new Reference('right')]);
+            let call = new FunctionCall(new Reference('==', new This()), '==', [new Reference('right')]);
             let bool = Evaluator.evaluateFunctionCall(context, call);
             bool.setProperty('.value', !bool.getProperty('.value'));
             return bool;

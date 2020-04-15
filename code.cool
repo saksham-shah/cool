@@ -1,12 +1,31 @@
+
 extract Console
 
+/*
+
+test = () => {
+    cost => Console.print("The cost is:\n")
+    //"hi"
+}
+
+
+Console.print(test()())
+
+
+
+
+/*
 Car = class (price) {
     static wheels = 4
 
     static horn = () => print("HOOOOOOOOOORN!!!")
 
-    getPrice = () => print("I cost " + price + " moneys.")
+    getPrice = () => print("I cost " + this.price + " moneys.")
 }
+
+
+2()
+
 
 Car.horn()
 
@@ -17,3 +36,26 @@ myCar = new Car(1000)
 myCar.getPrice()
 
 print(myCar);
+
+*/
+
+x = y = print
+
+print(y == x)
+
+array = [1, 2, 3]
+
+array.update = (index, value) => {
+    this[index] = value
+};
+
+print(array)
+
+array.update(0, 42)
+
+print(array)
+
+print("\n")
+
+
+print("hello"[2] + "hi"[0].toString())

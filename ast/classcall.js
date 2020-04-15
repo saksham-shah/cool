@@ -8,7 +8,7 @@ module.exports = class extends Expression {
         this.args = args;
     }
 
-    isFunctionCall() {
+    isConstructorCall() {
         return true;
     }
 }

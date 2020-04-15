@@ -17,10 +17,8 @@ const ConsoleClass = require('./interpreter/std/console');
 
 let codeText;
 
-console.log(decodeURIComponent('\\n'))
-
 const filename = 'code.cool';
-// const filename = 'examples/factorial.cool';
+// const filename = 'examples/division.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -35,7 +33,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program.expressions[3].condition.left);
+    // console.log(program.expressions[1].args[0].object.object);
 
     let context = new Context();
 

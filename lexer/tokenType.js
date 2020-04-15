@@ -65,6 +65,7 @@ module.exports = {
     Undefined: 'undefined',
 
     // Class
+    This: 'this',
     Class: 'class',
     Static: 'static',
     New: 'new',

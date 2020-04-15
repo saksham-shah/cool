@@ -8,12 +8,14 @@ const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
 const BooleanLiteral = require('../ast/boolean');
 const Class = require('../ast/class');
-const FunctionCall = require('../ast/functioncall');
+const ClassCall = require('../ast/classcall');
 const Func = require('../ast/func');
+const FunctionCall = require('../ast/functioncall');
 const IfElse = require('../ast/ifelse');
 const NumberLiteral = require('../ast/number');
 const Reference = require('../ast/reference');
 const StringLiteral = require('../ast/string');
+const This = require('../ast/this');
 const UnaryExpression = require('../ast/unaryexpression');
 const UndefinedLiteral = require('../ast/undefined');
 const While = require('../ast/while');
@@ -59,6 +61,11 @@ module.exports = class {
 
             this.currentToken = this.lexer.nextToken();
 
+        } else if (this.isNext(TokenType.This)) {
+            value = new This();
+
+            this.currentToken = this.lexer.nextToken();
+
         } else if (this.isNext(TokenType.If)) {
             value = this.parseIfElse();
 
@@ -69,7 +76,7 @@ module.exports = class {
             value = this.parseClassAnonymous();
 
         } else if (this.isNext(TokenType.New)) {
-            value = this.parseConstructorCall();
+            value = this.parseClassCall();
 
         } else if (this.unaryOperatorIsNext()) {
             let operator = token.value;
@@ -92,8 +99,8 @@ module.exports = class {
             // Parses according to the next token
             if (this.tokenIsAssignment(nextToken)) {
                 value = this.parseAssignment();
-            } else if (nextToken.type == TokenType.OpenBracket) {
-                value = this.parseFunctionCall();
+            // } else if (nextToken.type == TokenType.OpenBracket) {
+            //     value = this.parseFunctionCall();
             } else if (nextToken.type == TokenType.Arrow) {
                 value = this.parseFunctionAnonymous();
             } else {
@@ -243,7 +250,7 @@ module.exports = class {
     parseProperty() {
         let value = this.parseValue();
 
-        while (this.isNext(TokenType.Dot, TokenType.OpenSquare)) {
+        while (this.isNext(TokenType.Dot, TokenType.OpenSquare, TokenType.OpenBracket)) {
             if (this.isNext(TokenType.Dot)) {
                 this.expect(TokenType.Dot);
 
@@ -252,12 +259,12 @@ module.exports = class {
                 // Parses according to the next token
                 if (nextToken.type == TokenType.Equal) {
                     value = this.parseAssignment(value);
-                } else if (nextToken.type == TokenType.OpenBracket) {
-                    value = this.parseFunctionCall(value);
+                // } else if (nextToken.type == TokenType.OpenBracket) {
+                //     value = this.parseFunctionCall(value);
                 } else {
                     value = new Reference(this.expect(TokenType.Identifier).value, value);
                 }
-            } else {
+            } else if (this.isNext(TokenType.OpenSquare)) {
                 this.expect(TokenType.OpenSquare);
                 // Any expression can be inside the square brackets
                 let expr = this.parseExpression();
@@ -269,11 +276,13 @@ module.exports = class {
                 // Sends an expression to be used as the identifier or function Name
                 if (token.type == TokenType.Equal) {
                     value = this.parseAssignment(value, expr);
-                } else if (token.type == TokenType.OpenBracket) {
-                    value = this.parseFunctionCall(value, expr);
+                // } else if (token.type == TokenType.OpenBracket) {
+                //     value = this.parseFunctionCall(value, expr);
                 } else {
                     value = new Reference(expr, value);
                 }
+            } else if (this.isNext(TokenType.OpenBracket)) {
+                value = this.parseFunctionCall(value);
             }
         }
 
@@ -408,8 +417,8 @@ module.exports = class {
     }
 
     // RETURNS: Constructor Call Expression
-    parseConstructorCall() {
-        
+    parseClassCall() {
+
     }
 
     // RETURNS: Function Expression
@@ -475,13 +484,14 @@ module.exports = class {
     parseFunctionCall(object, functionName) {
         let token = this.currentToken;
 
-        if (functionName == undefined) {
-            functionName = this.expect(TokenType.Identifier).value;
-        }
+        // if (functionName == undefined) {
+        //     functionName = this.expect(TokenType.Identifier).value;
+        // }
 
         let args = this.parseArguments();
 
-        let func = new FunctionCall(object, functionName, args);
+        // let func = new FunctionCall(object, functionName, args);
+        let func = new FunctionCall(object, undefined, args);
         
         func.copyLocation(token);
 

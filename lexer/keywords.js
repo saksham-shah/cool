@@ -4,6 +4,6 @@ module.exports = [
     'And', 'Or',
     'End', 'If', 'Else', 'While', 'For',
     'Undefined',
-    'Class', 'Static', 'New',
+    'This', 'Class', 'Static', 'New',
     'Extract', 'Function'
 ]

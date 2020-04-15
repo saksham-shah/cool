@@ -241,12 +241,12 @@ module.exports = class {
             case '/':
                 if (nextChar == '/') {
                     this.skipUntilNewline();
-                    return this.nextToken();
+                    return this.readToken();
                 }
 
                 if (nextChar == '*') {
                     this.skipUntilMultilineEnd();
-                    return this.nextToken();
+                    return this.readToken();
                 }
 
                 if (nextChar == '=') {
@@ -401,9 +401,13 @@ module.exports = class {
                     this.counter++;
                     this.column++;
                 }
-            } else { 
-                this.counter += 2;
-                this.column += 2;
+            } else {
+                if (CharUtils.isNewline(this.getChar())) {
+                    this.line++;
+                    this.column = 0;
+                }
+                this.counter ++;
+                this.column ++;
             }
         }
     }

@@ -78,7 +78,7 @@ module.exports = class extends Class {
         // Boolean operators
         this.functions.set(TokenType.And, new Func(TokenType.And, ['right'], new NativeExpression(context => {
             if (context.self.getProperty('.value').length > 0) {
-                let call = new FunctionCall(new Reference('right'), 'toBoolean');
+                let call = new FunctionCall(new Reference('toBoolean', new Reference('right')), 'toBoolean');
                 return Evaluator.evaluate(context, call);
             } else {
                 let bool = Obj.create(context, Types.Boolean);
@@ -93,7 +93,7 @@ module.exports = class extends Class {
                 bool.setProperty('.value', true);
                 return bool;
             } else {
-                let call = new FunctionCall(new Reference('right'), 'toBoolean');
+                let call = new FunctionCall(new Reference('toBoolean', new Reference('right')), 'toBoolean');
                 return Evaluator.evaluate(context, call);
             }
         })));
@@ -124,7 +124,7 @@ module.exports = class extends Class {
 
         // Opposite of the '==' function
         this.functions.set('!=', new Func('!=', ['right'], new NativeExpression(context => {
-            let call = new FunctionCall(new This(), '==', [new Reference('right')]);
+            let call = new FunctionCall(new Reference('==', new This()), '==', [new Reference('right')]);
             let bool = Evaluator.evaluateFunctionCall(context, call);
             bool.setProperty('.value', !bool.getProperty('.value'));
             return bool;
@@ -242,7 +242,7 @@ module.exports = class extends Class {
             if (char.type == Types.Undefined) {
                 char = '';
             } else if (char.type != Types.String) {
-                let call = new FunctionCall(new Reference('char'), 'toString');
+                let call = new FunctionCall(new Reference('toString', new Reference('char')), 'toString');
                 char = Evaluator.evaluate(context, call);
                 char = char.getProperty('.value');
             } else {
