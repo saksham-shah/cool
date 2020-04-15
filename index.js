@@ -17,8 +17,10 @@ const ConsoleClass = require('./interpreter/std/console');
 
 let codeText;
 
-// const filename = 'code.cool';
-const filename = 'examples/factorial.cool';
+console.log(decodeURIComponent('\\n'))
+
+const filename = 'code.cool';
+// const filename = 'examples/factorial.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {

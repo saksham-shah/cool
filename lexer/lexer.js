@@ -188,7 +188,7 @@ module.exports = class {
         let column = this.column;
         this.column += result.value.length;
 
-        return new Token(TokenType.String, result.value.substr(1, result.value.length - 2), this.line, column, this.file);
+        return new Token(TokenType.String, parseString(result.value.substr(1, result.value.length - 2)), this.line, column, this.file);
     }
 
     recogniseOperator(char) {
@@ -241,6 +241,11 @@ module.exports = class {
             case '/':
                 if (nextChar == '/') {
                     this.skipUntilNewline();
+                    return this.nextToken();
+                }
+
+                if (nextChar == '*') {
+                    this.skipUntilMultilineEnd();
                     return this.nextToken();
                 }
 
@@ -383,4 +388,33 @@ module.exports = class {
             this.column++;
         }
     }
+
+    // Skip to the next *\ (end of multiline comment)
+    skipUntilMultilineEnd() {
+        let found = false;
+        while (this.counter < this.len && !found) {
+            if (this.getChar() == '*') {
+                this.counter++;
+                this.column++;
+                if (this.getChar() == '/') {
+                    found = true;
+                    this.counter++;
+                    this.column++;
+                }
+            } else { 
+                this.counter += 2;
+                this.column += 2;
+            }
+        }
+    }
+}
+
+function parseString(text) {
+    return text.replace(/\\(.?)/g, function (match, char) {
+        if (char == '\\') return '\\';
+        if (char == 'n') return '\n';
+        if (char == 't') return '\t';
+        if (char == '') return '';
+        return char;
+    });
 }

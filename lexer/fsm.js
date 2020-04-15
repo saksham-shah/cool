@@ -54,10 +54,16 @@ module.exports = class FSM {
             switch (state) {
                 case 'Start':
                     if (CharUtils.isStringMark(char)) return 'Main';
+                    if (CharUtils.isEscape(char)) return 'Escape';
                     break;
 
                 case 'Main':
                     if (CharUtils.isStringMark(char)) return 'End'
+                    if (CharUtils.isEscape(char)) return 'Escape';
+                    if (!CharUtils.isNewline(char)) return 'Main';
+                    break;
+
+                case 'Escape':
                     if (!CharUtils.isNewline(char)) return 'Main';
                     break;
             }

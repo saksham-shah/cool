@@ -1,15 +1,19 @@
 extract Console
 
-sum = () => {
-    total
-    arguments.forEach(item => total += item)
-    print(total)
+Car = class (price) {
+    static wheels = 4
+
+    static horn = () => print("HOOOOOOOOOORN!!!")
+
+    getPrice = () => print("I cost " + price + " moneys.")
 }
 
-sumDef(1, 2, 3, 4, 5, 6)
+Car.horn()
 
-function sumDef () {
-    total
-    arguments.forEach(item => total += item)
-    print(total)
-}
+/*
+
+myCar = new Car(1000)
+
+myCar.getPrice()
+
+print(myCar);

@@ -211,13 +211,47 @@ module.exports = class extends Class {
 
             let array = context.self.getProperty('.value');
 
-            for (let item of array) {
-                let call = new FunctionCall(undefined, 'func', [item]);
+            for (let i = 0; i < array.length; i++) {
+                let call = new FunctionCall(undefined, 'func', [array[i], new NumberLiteral(i), new This()]);
                 Evaluator.evaluate(context, call);
             }
 
             return Obj.create(Types.Undefined);
         })));
+
+        this.functions.set('join', new Func('join', ['char'], new NativeExpression(context => {
+            let output;
+            let array = context.self.getProperty('.value');
+            let char = context.environment.getValue('char');
+
+            if (char.type == Types.Undefined) {
+                char = '';
+            } else if (char.type != Types.String) {
+                let call = new FunctionCall(new Reference('char'), 'toString');
+                char = Evaluator.evaluate(context, call);
+                char = char.getProperty('.value');
+            } else {
+                char = char.getProperty('.value');
+            }
+
+            output = '';
+            // Convert each item to a string and join it with the character specified
+            for (let i = 0; i < array.length; i++) {
+                if (i > 0) {
+                    output += char;
+                }
+
+                // Calling 'toString' on each item of the array
+                let call = new FunctionCall(new Reference(new NumberLiteral(i), new This()), 'toString');
+                let str = Evaluator.evaluate(context, call);
+                output += str.getProperty('.value');
+            }
+            
+            let str = Obj.create(context, Types.String);
+            str.setProperty('.value', output);
+            return str;
+        })));
+    
 
         // The length of the array
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
@@ -255,7 +289,11 @@ module.exports = class extends Class {
                     // Calling 'toString' on each item of the array
                     let call = new FunctionCall(new Reference(new NumberLiteral(i), new This()), 'toString', [new NumberLiteral(level + 1)]);
                     let str = Evaluator.evaluate(context, call);
-                    output += str.getProperty('.value');
+                    if (array[i].type == Types.String) {
+                        output += '"' + str.getProperty('.value') + '"';
+                    } else {
+                        output += str.getProperty('.value');
+                    }
                 }
 
                 output += ']';

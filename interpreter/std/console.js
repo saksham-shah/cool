@@ -45,7 +45,7 @@ module.exports = class extends Class {
                 output += str.getProperty('.value');
             }
 
-            console.log('OUTPUT: ' + output);
+            console.log(`OUTPUT: ${output}`);
         })));
 
         // Just a test - the Math class will have this

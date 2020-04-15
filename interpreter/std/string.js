@@ -234,6 +234,34 @@ module.exports = class extends Class {
             return result;
         })));
 
+        this.functions.set('split', new Func('split', ['char'], new NativeExpression(context => {
+            let output;
+            let str = context.self.getProperty('.value');
+            let char = context.environment.getValue('char');
+
+            if (char.type == Types.Undefined) {
+                char = '';
+            } else if (char.type != Types.String) {
+                let call = new FunctionCall(new Reference('char'), 'toString');
+                char = Evaluator.evaluate(context, call);
+                char = char.getProperty('.value');
+            } else {
+                char = char.getProperty('.value');
+            }
+
+            let strArray = str.split(char);
+            let array = [];
+            for (let item of strArray) {
+                let obj = Obj.create(context, Types.String);
+                obj.setProperty('.value', item);
+                array.push(obj);
+            }
+
+            let arrayObj = Obj.create(context, Types.Array);
+            arrayObj.setProperty('.value', array);
+            return arrayObj;
+        })));
+
         // The length of the string
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
             let result = Obj.create(context, Types.Number);
@@ -249,6 +277,7 @@ module.exports = class extends Class {
 
         // It's already a string
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
+            return context.self;
             let str = Obj.create(context, Types.String);
             str.setProperty('.value', '\'' + context.self.getProperty('.value') + '\'');
             return str;

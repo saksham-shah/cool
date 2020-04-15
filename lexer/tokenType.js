@@ -64,6 +64,11 @@ module.exports = {
 
     Undefined: 'undefined',
 
+    // Class
+    Class: 'class',
+    Static: 'static',
+    New: 'new',
+
     // Definitions
     Extract: 'extract',
     Function: 'function',

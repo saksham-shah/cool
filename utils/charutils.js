@@ -36,6 +36,10 @@ module.exports = class {
         return char === ' ';
     }
 
+    static isEscape(char) {
+        return char === '\\';
+    }
+
     static isNewline(char) {
         return char === '\n' || char === '\r\n';
     }

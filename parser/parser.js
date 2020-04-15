@@ -7,6 +7,7 @@ const Assignment = require('../ast/assignment');
 const BinaryExpression = require('../ast/binaryexpression');
 const Block = require('../ast/block');
 const BooleanLiteral = require('../ast/boolean');
+const Class = require('../ast/class');
 const FunctionCall = require('../ast/functioncall');
 const Func = require('../ast/func');
 const IfElse = require('../ast/ifelse');
@@ -63,6 +64,12 @@ module.exports = class {
 
         } else if (this.isNext(TokenType.While)) {
             value = this.parseWhile();
+
+        } else if (this.isNext(TokenType.Class)) {
+            value = this.parseClassAnonymous();
+
+        } else if (this.isNext(TokenType.New)) {
+            value = this.parseConstructorCall();
 
         } else if (this.unaryOperatorIsNext()) {
             let operator = token.value;
@@ -359,6 +366,50 @@ module.exports = class {
         this.expect(TokenType.CloseBracket);
 
         return expression;
+    }
+
+    // RETURNS: Class Expression
+    parseClassAnonymous() {
+        let token = this.currentToken;
+
+        this.expect(TokenType.Class);
+        
+        let params = this.parseParameters(false);
+        let functions = new Map();
+        let statics = new Map();
+
+        this.expect(TokenType.OpenBrace);
+
+        // Only allowing anonymous functions for now
+        while (!this.isNext(TokenType.CloseBrace)) {
+            if (this.isNext(TokenType.Static)) {
+                this.expect(TokenType.Static);
+
+                let name = this.expect(TokenType.Identifier).value;
+                this.expect(TokenType.Equal);
+                let value = this.parseExpression();
+
+                statics.set(name, value);
+            } else {
+                let funcName = this.expect(TokenType.Identifier).value;
+                this.expect(TokenType.Equal);
+                let func = this.parseFunctionAnonymous();
+
+                functions.set(funcName, func);
+            }
+        }
+
+        this.expect(TokenType.CloseBrace);
+
+        let klass = new Class(undefined, undefined, params, functions, statics);
+        
+        klass.copyLocation(token);
+        return klass;
+    }
+
+    // RETURNS: Constructor Call Expression
+    parseConstructorCall() {
+        
     }
 
     // RETURNS: Function Expression
