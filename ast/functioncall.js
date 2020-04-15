@@ -6,6 +6,9 @@ module.exports = class extends Expression {
         this.reference = reference;
         this.name = name;
         this.args = args;
+
+        // Whether it is a constructor call
+        this.constructor = false;
     }
 
     isFunctionCall() {

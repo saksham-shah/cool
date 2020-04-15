@@ -416,9 +416,21 @@ module.exports = class {
         return klass;
     }
 
-    // RETURNS: Constructor Call Expression
+    // RETURNS: Function Call Expression (with constructor = true)
     parseClassCall() {
+        let token = this.currentToken;
 
+        this.expect(TokenType.New);
+
+        let func = this.parseProperty();
+
+        if (!func.isFunctionCall()) {
+            throw new Error(Report.error(`new must be followed by a constructor call`, func.line, func.column, func.file));
+        }
+
+        func.constructor = true;
+        func.copyLocation(token);
+        return func;
     }
 
     // RETURNS: Function Expression

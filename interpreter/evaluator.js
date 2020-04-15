@@ -227,6 +227,43 @@ module.exports = class {
         return classObj;
     }
 
+    // RETURNS: Obj
+    static evaluateClassCall(context, call) {
+        let klass = this.evaluate(context, call.reference);
+
+        if (klass.type != Types.Class) {
+            throw new Error(Report.error(`Constructor call must refer to class`, call.line, call.column, call.file));
+        }
+
+        klass = klass.getProperty('.class');
+
+        let obj = Obj.create(context, Types.Object);
+        
+        // Evaluates all of the arguments passed into the constructor
+        // And sets them to the appropriate parameters
+        for (let i = 0; i < klass.params.length; i++) {
+            let argObj;
+            if (i >= call.args.length) {
+                argObj = Obj.create(context, Types.Undefined);
+            } else {
+                argObj = this.evaluate(context, call.args[i]);
+            }
+
+            obj.setProperty(klass.params[i], argObj);
+        }
+
+        // Adds all of the class functions to the object
+        for (let [name, func] of klass.functions) {
+            let funcObj = Obj.create(this.context, Types.Function);
+            funcObj.setProperty('.name', name);
+            funcObj.setProperty('.function', func);
+
+            obj.setProperty(name, funcObj);
+        }
+
+        return obj;
+    }
+
     // RETURNS: Function Obj
     static evaluateFunction(context, func) {
         let funcObj = Obj.create(context, Types.Function);
@@ -237,6 +274,10 @@ module.exports = class {
     }
 
     static evaluateFunctionCall(context, call) {
+        if (call.constructor) {
+            return this.evaluateClassCall(context, call);
+        }
+
         if (!(call.reference.isReference() || call.reference.isAssignment() || call.reference.isFunctionCall())) {
             throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
         }

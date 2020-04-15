@@ -2,11 +2,11 @@ const Expression = require('./expression');
 // const Obj = require('../interpreter/object');
 
 module.exports = class extends Expression {
-    constructor(name, superClass, parameters = [], functions = new Map(), statics = new Map()) {
+    constructor(name, superClass, params = [], functions = new Map(), statics = new Map()) {
         super();
         this.name = name;
         this.superClass = superClass;
-        this.parameters = parameters;
+        this.params = params;
         this.functions = functions;
         this.statics = statics;
     }
