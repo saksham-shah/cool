@@ -19,7 +19,7 @@ module.exports = class extends Class {
 
         this.name = Types.Boolean;
 
-        this.superClass = Types.Object;
+        this.superClass = new Reference(Types.Object);
 
         // Boolean operators
         this.functions.set(TokenType.And, new Func(TokenType.And, ['right'], new NativeExpression(context => {
@@ -112,7 +112,7 @@ module.exports = class extends Class {
 
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             let str = Obj.create(context, Types.String);
-            str.setProperty('.value', context.self.getProperty('.value') ? 'yes' : 'no');
+            str.setProperty('.value', context.self.getProperty('.value') ? TokenType.True : TokenType.False);
             return str;
         })));
     }

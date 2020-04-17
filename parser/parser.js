@@ -1,5 +1,6 @@
 const Lexer = require('../lexer/lexer')
 const TokenType = require('../lexer/tokenType');
+const Types = require('../types/types');
 
 // Expressions
 const ArrayLiteral = require('../ast/array');
@@ -257,8 +258,9 @@ module.exports = class {
                 let nextToken = this.lexer.lookahead();
 
                 // Parses according to the next token
-                if (nextToken.type == TokenType.Equal) {
-                    value = this.parseAssignment(value);
+                // if (nextToken.type == TokenType.Equal) {
+                if (this.tokenIsAssignment(nextToken)) {
+                        value = this.parseAssignment(value);
                 // } else if (nextToken.type == TokenType.OpenBracket) {
                 //     value = this.parseFunctionCall(value);
                 } else {
@@ -274,8 +276,9 @@ module.exports = class {
     
                 // Parses according to the next token
                 // Sends an expression to be used as the identifier or function Name
-                if (token.type == TokenType.Equal) {
-                    value = this.parseAssignment(value, expr);
+                // if (token.type == TokenType.Equal) {
+                if (this.tokenIsAssignment(token)) {
+                        value = this.parseAssignment(value, expr);
                 // } else if (token.type == TokenType.OpenBracket) {
                 //     value = this.parseFunctionCall(value, expr);
                 } else {
@@ -358,14 +361,16 @@ module.exports = class {
     parseBracket() {
         let nextToken;
         do {
-            nextToken = this.lexer.lookahead();
+            nextToken = this.lexer.lookahead(false);
         } while (nextToken.type != TokenType.CloseBracket);
 
-        nextToken = this.lexer.lookahead();
+        nextToken = this.lexer.lookahead(false);
         // Means it is an anonymous function
         if (nextToken.type == TokenType.Arrow) {
             return this.parseFunctionAnonymous();
         }
+
+        // this.lexer.clearLookahead();
 
         // Otherwise it's a normal bracket, like 2 * (1 + 8)
         this.expect(TokenType.OpenBracket);
@@ -386,12 +391,37 @@ module.exports = class {
         let params = this.parseParameters(false);
         let functions = new Map();
         let statics = new Map();
+        let superClass = new Reference(Types.Object);
+        let superArgs = [];
+        let init = undefined;
+
+        if (this.isNext(TokenType.Extends)) {
+            this.expect(TokenType.Extends);
+            let superClassCall = this.parseProperty();
+
+            if (!superClassCall.isFunctionCall()) {
+                throw new Error(Report.error(`extends must be followed by a constructor call`, superClassCall.line, superClassCall.column, superClassCall.file));
+            }
+
+            superClass = superClassCall.reference;
+            superArgs = superClassCall.args;
+        }
 
         this.expect(TokenType.OpenBrace);
 
         // Only allowing anonymous functions for now
         while (!this.isNext(TokenType.CloseBrace)) {
-            if (this.isNext(TokenType.Static)) {
+            if (this.isNext(TokenType.Init)) {
+                if (init != undefined) {
+                    throw new Error(Report.error(`init already defined for this class`, this.currentToken.line, this.currentToken.column, this.currentToken.file));
+                }
+
+                this.expect(TokenType.Init);
+
+                init = this.parseExpression();
+
+            } else if (this.isNext(TokenType.Static)) {
+                // Static properties can be any kind of expression
                 this.expect(TokenType.Static);
 
                 let name = this.expect(TokenType.Identifier).value;
@@ -399,7 +429,10 @@ module.exports = class {
                 let value = this.parseExpression();
 
                 statics.set(name, value);
+
             } else {
+                // Must be an anonymous function
+                // Non-static properties can be defined in the init
                 let funcName = this.expect(TokenType.Identifier).value;
                 this.expect(TokenType.Equal);
                 let func = this.parseFunctionAnonymous();
@@ -410,7 +443,7 @@ module.exports = class {
 
         this.expect(TokenType.CloseBrace);
 
-        let klass = new Class(undefined, undefined, params, functions, statics);
+        let klass = new Class(undefined, params, functions, statics, superClass, superArgs, init);
         
         klass.copyLocation(token);
         return klass;

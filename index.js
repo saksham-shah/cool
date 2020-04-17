@@ -33,7 +33,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program.expressions[1].args[0].object.object);
+    // console.log(program.expressions[3]);
 
     let context = new Context();
 

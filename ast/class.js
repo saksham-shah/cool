@@ -1,14 +1,17 @@
 const Expression = require('./expression');
-// const Obj = require('../interpreter/object');
+const Evaluator = require('../interpreter/evaluator');
+const Types = require('../types/types');
 
 module.exports = class extends Expression {
-    constructor(name, superClass, params = [], functions = new Map(), statics = new Map()) {
+    constructor(name, params = [], functions = new Map(), statics = new Map(), superClass = undefined, superArgs = [], init = undefined) {
         super();
         this.name = name;
-        this.superClass = superClass;
         this.params = params;
         this.functions = functions;
         this.statics = statics;
+        this.superClass = superClass;
+        this.superArgs = superArgs;
+        this.init = init;
     }
 
     isClass() {
@@ -36,5 +39,24 @@ module.exports = class extends Expression {
         let klass = superClass.getProperty('.class');
 
         return klass.getMethod(context, functionName);       
+    }
+
+    // Takes a class object and adds static properties to it
+    // RETURNS: Nothing
+    setStatics(context, classObj) {
+        // Recursively add the static properties of all super classes
+        if (this.superClass != undefined) {
+            let superClass = context.environment.getValue(this.superClass);
+
+            let klass = superClass.getProperty('.class');
+
+            klass.setStatics(context, classObj);
+        }
+
+        // Add each static property
+        for (let [name, expression] of this.statics) {
+            let obj = Evaluator.evaluate(context, expression);
+            classObj.setProperty(name, obj);
+        }
     }
 }

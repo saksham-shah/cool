@@ -18,8 +18,18 @@ module.exports = class extends Class {
         super();
 
         this.name = Types.Number;
+        this.params = ['value'];
 
-        this.superClass = Types.Object;
+        this.superClass = new Reference(Types.Object);
+
+        this.init = new NativeExpression((context, err) => {
+            let numObj = context.environment.getValue('value');
+            if (numObj.type != Types.Number) {
+                err(`Number must be an integer`);
+            }
+
+            context.self.setProperty('.value', numObj.getProperty('.value'));
+        });
 
         // The '+' operator
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {

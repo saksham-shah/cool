@@ -17,7 +17,7 @@ module.exports = class extends Class {
 
         this.name = Types.Undefined;
 
-        this.superClass = Types.Object;
+        this.superClass = new Reference(Types.Object);
 
         // Simply returns the other object - does not change the object at all
         // Same for the other operators

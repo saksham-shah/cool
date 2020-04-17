@@ -69,6 +69,8 @@ module.exports = {
     Class: 'class',
     Static: 'static',
     New: 'new',
+    Extends: 'extends',
+    Init: 'init',
 
     // Definitions
     Extract: 'extract',

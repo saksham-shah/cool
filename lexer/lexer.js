@@ -118,12 +118,23 @@ module.exports = class {
 
     // Look at the next token without actually moving on to it (used by Parser)
     // RETURNS: Token
-    lookahead() {
+    lookahead(fetchFromBuffer = true) {
+        // If there are tokens in the buffer, return the the first one
+        if (fetchFromBuffer && this.buffer.length > 0) {
+            return this.buffer[0];
+        }
+
         let token = this.readToken();
 
         this.buffer.push(token);
         
         return token;
+    }
+
+    // Clears the buffer
+    // RETURNS: Nothing
+    clearLookahead() {
+        this.buffer = [];
     }
     
     // The next few methods all recognise and return a token

@@ -1,33 +1,27 @@
-
 extract Console
 
-classes = []
+Car = class (yearModel, make) {
+    init this.speed = new Number(0)
 
-Car = class (price) {
-    static wheels = 4
+    getYearModel = () => yearModel
+    getMake = () => make
+    getSpeed = () => speed
 
-    static horn = () => print("HOOOOOOOOOORN!!!")
-
-    getPrice = () => print("I cost " + this.price + " moneys.")
+    accelerate = () => this.speed += 5
+    brake = () => this.speed -= 5
+    
 }
 
-Car.horn()
+myCar = new Car(2001, "cool car")
 
-test = () => Car
+while (-1 + i += 1) < 5 {
+    myCar.accelerate()
+    print(myCar.getSpeed())
+}
 
-myCar = new test()(1)
+while (-1 + j += 1) < 5 {
+    myCar.brake()
+    print(myCar.getSpeed())
+}
 
-print(myCar)
-
-classes += Car
-classes += Car
-classes += Car
-
-nextCar = new classes[1](500)
-
-myCar.getPrice()
-
-nextCar.getPrice()
-
-print(classes);
 

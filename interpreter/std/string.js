@@ -18,7 +18,7 @@ module.exports = class extends Class {
 
         this.name = Types.String;
 
-        this.superClass = Types.Object;
+        this.superClass = new Reference(Types.Object);
 
         // Functions for each operator, similar to the Number class
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {

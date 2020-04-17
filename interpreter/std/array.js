@@ -19,7 +19,7 @@ module.exports = class extends Class {
 
         this.name = Types.Array;
 
-        this.superClass = Types.Object;
+        this.superClass = new Reference(Types.Object);
 
         // Add an item at the end of the array
         this.functions.set('+', new Func('+', ['right'], new NativeExpression(context => {

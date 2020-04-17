@@ -1,5 +1,7 @@
 const Obj = require('./object');
 const Types = require('../types/types');
+const Evaluator = require('../interpreter/evaluator');
+const Expression = require('../ast/expression');
 
 module.exports = class {
     constructor(context) {
@@ -36,6 +38,11 @@ module.exports = class {
     // If not found, checks each previous scope in turn
     // RETURNS: Obj (an Object in Cool)
     getValue(identifier) {
+        // Used when looking for an anonymous class
+        if (identifier instanceof Expression) {
+            return Evaluator.evaluate(this.context, identifier);
+        }
+
         let value, scope, counter;
         // If the current scope is null, something has gone very wrong
         if (this.scope == null) {
@@ -56,11 +63,12 @@ module.exports = class {
 
         // Must always return an Obj so if the value isn't found, it returns an Undefined Obj
         if (value == undefined) {
-            let undef = Obj.create(this.context, Types.Undefined);
+            // let undef = Obj.create(this.context, Types.Undefined);
+            let value = this.context.self.getProperty(identifier);
 
             // Sets this value for future use
-            this.scope.set(identifier, undef);
-            return undef;
+            this.scope.set(identifier, value);
+            return value;
         }
 
         return value;

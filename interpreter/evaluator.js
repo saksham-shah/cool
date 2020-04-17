@@ -216,17 +216,37 @@ module.exports = class {
         // Some classes will be anonymous
         classObj.setProperty('.name', klass.name != undefined ? klass.name : '[Anonymous]');
         classObj.setProperty('.class', klass);
-        for (let [name, expression] of klass.statics) {
-            // let funcObj = this.evaluateFunction(context, func);
-            // classObj.setProperty(func.name, funcObj);
 
-            let obj = this.evaluate(context, expression);
-            classObj.setProperty(name, obj);
-        }
+        klass.setStatics(context, classObj);
+
+        // while (klass != undefined) {
+        //     for (let [name, expression] of klass.statics) {
+        //         // let funcObj = this.evaluateFunction(context, func);
+        //         // classObj.setProperty(func.name, funcObj);
+    
+        //         let obj = this.evaluate(context, expression);
+        //         classObj.setProperty(name, obj);
+        //     }
+
+        //     if (klass.superClass != undefined) {
+        //         klass = context.environment.getValue(klass.superClass);
+        //         klass = klass.getProperty('.class');
+        //     } else {
+        //         klass = undefined;
+        //     }
+        // }
+        // for (let [name, expression] of klass.statics) {
+        //     // let funcObj = this.evaluateFunction(context, func);
+        //     // classObj.setProperty(func.name, funcObj);
+
+        //     let obj = this.evaluate(context, expression);
+        //     classObj.setProperty(name, obj);
+        // }
         
         return classObj;
     }
 
+    // Creates objects when the 'new' keyword is used
     // RETURNS: Obj
     static evaluateClassCall(context, call) {
         let klass = this.evaluate(context, call.reference);
@@ -236,30 +256,63 @@ module.exports = class {
         }
 
         klass = klass.getProperty('.class');
-
-        let obj = Obj.create(context, Types.Object);
         
         // Evaluates all of the arguments passed into the constructor
-        // And sets them to the appropriate parameters
-        for (let i = 0; i < klass.params.length; i++) {
-            let argObj;
-            if (i >= call.args.length) {
-                argObj = Obj.create(context, Types.Undefined);
-            } else {
-                argObj = this.evaluate(context, call.args[i]);
-            }
-
-            obj.setProperty(klass.params[i], argObj);
+        let argObjects = [];
+        for (let i = 0; i < call.args.length; i++) {
+            argObjects.push(this.evaluate(context, call.args[i]));
         }
 
-        // Adds all of the class functions to the object
+        context.environment.enterScope();
+
+        // And sets them to the appropriate parameters
+        for (let i = 0; i < klass.params.length; i++) {
+            if (i < argObjects.length) {
+                context.environment.setValue(klass.params[i], argObjects[i], true);
+            }
+        }
+
+        let obj;
+
+        // If the class inherits from something, recursively call the super constructor
+        if (klass.superClass) {
+            let superCall = new FunctionCall(klass.superClass, undefined, klass.superArgs);
+            superCall.copyLocation(call);
+            superCall.constructor = true;
+
+            obj = this.evaluate(context, superCall);
+            obj.type = call.reference;
+        } else {
+            obj = Obj.create(context, call.reference);
+        }
+        
+        // 'this' will point to the object
+        let self = context.self;
+        context.self = obj;
+
+        // Add all of the arguments which were passed into the constructor
+        for (let i = 0; i < klass.params.length; i++) {
+            if (i < argObjects.length) {
+                obj.setProperty(klass.params[i], argObjects[i]);
+            }
+        }
+
+        // Add all of the class functions to the object
         for (let [name, func] of klass.functions) {
-            let funcObj = Obj.create(this.context, Types.Function);
+            let funcObj = Obj.create(context, Types.Function);
             funcObj.setProperty('.name', name);
             funcObj.setProperty('.function', func);
 
             obj.setProperty(name, funcObj);
         }
+
+        // Run the 'init' expression of the class
+        if (klass.init != undefined) {
+            this.evaluate(context, klass.init);
+        }
+
+        context.environment.exitScope();
+        context.self = self;
 
         return obj;
     }
@@ -273,23 +326,44 @@ module.exports = class {
         return funcObj;
     }
 
+    // Searches for the appropriate function to call
+    // RETURNS: Result of the function call
     static evaluateFunctionCall(context, call) {
         if (call.constructor) {
             return this.evaluateClassCall(context, call);
         }
 
+        // You can't call something like '2()'
         if (!(call.reference.isReference() || call.reference.isAssignment() || call.reference.isFunctionCall())) {
             throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
         }
 
-        let object;
-        let func = this.evaluate(context, call.reference);
-        let name = call.reference.identifier;
+        let object = undefined;
         
         if (call.reference.object != undefined) {
             object = this.evaluate(context, call.reference.object);
 
+            call.reference.object = object;
+        }
+
+        let func = this.evaluate(context, call.reference);
+        let name = call.reference.identifier;
+
+        // if (func.type != Types.Function) {
+        //     throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
+        // }
+
+        // func = func.getProperty('.function');
+        
+        // At this point the function has already been found
+        // The rest of this function is error handling
+        // If func isn't a Function, something has gone wrong
+        // 
+        if (object != undefined) {
+            // object = this.evaluate(context, call.reference.object);
+
             let nameObj = undefined;
+            // Square bracket properties - e.g. Console["print"]() is the same as Console.print()
             if (name instanceof Expression) {
                 nameObj = this.getNameFromExpression(context, name, object);
                 name = nameObj.getProperty('.value');
@@ -299,8 +373,15 @@ module.exports = class {
                 if (name == undefined) {
                     throw new Error(Report.error(`Invalid function call`, call.line, call.column, call.file));
                 } else if (nameObj == undefined || nameObj.type == Types.String) {
-                    throw new Error(Report.error(`${name} is not a method of the ${object.type} class`, call.line, call.column, call.file));
+                    if (object.type instanceof Expression) {
+                        // Function can't be found in an anonymous class
+                        throw new Error(Report.error(`${name} is not a method of this class`, call.line, call.column, call.file));
+                    } else {
+                        // Function can't be found in a named class
+                        throw new Error(Report.error(`${name} is not a method of the ${object.type} class`, call.line, call.column, call.file));
+                    }
                 } else {
+                    // Function name is a number, meaning it is an item of an array
                     throw new Error(Report.error(`Object at index [${name}] is not a function`, call.line, call.column, call.file));
                 }
             }
@@ -316,16 +397,11 @@ module.exports = class {
             }
         }
 
-        // if (func.type != Types.Function) {
-        //     console.log(call)
-        //     throw new Error(Report.error(`This is not a function`, call.line, call.column, call.file));
-        // }
-
-        if (func instanceof Obj) {
+        // if (func instanceof Obj) {
             func = func.getProperty('.function');
-        } else {
-            console.log('something is very wrong line 258 evaluator.js')
-        }
+        // } else {
+            // console.log('something is very wrong line 258 evaluator.js')
+        // }
 
         return this.evaluateFunctionCallImpl(context, object, func, call);
     }
@@ -390,12 +466,6 @@ module.exports = class {
         
         // Evaluates all of the arguments passed into the function
         for (let i = 0; i < call.args.length; i++) {
-            // let thisArgument;
-            // if (i >= call.args.length) {
-            //     thisArgument = Obj.create(context, Types.Undefined);
-            // } else {
-            //     thisArgument = this.evaluate(context, call.args[i]);
-            // }
             argObjects.push(this.evaluate(context, call.args[i]));
         }
 
@@ -410,7 +480,7 @@ module.exports = class {
             } else {
                 thisArgument = argObjects[i];
             }
-            context.environment.setValue(func.params[i], thisArgument);
+            context.environment.setValue(func.params[i], thisArgument, true);
         }
 
         // Create the arguments array

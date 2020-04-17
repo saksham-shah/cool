@@ -17,7 +17,7 @@ module.exports = class extends Class {
 
         this.name = Types.Console;
 
-        this.superClass = Types.Object;
+        this.superClass = new Reference(Types.Object);
 
         // Outputs to the console
         this.statics.set('print', new Func('print', [], new NativeExpression(context => {
