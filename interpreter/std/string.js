@@ -40,7 +40,7 @@ module.exports = class extends Class {
                     result.setProperty('.value', left.getProperty('.value'));
                     break;
                 default:
-                    err(`Invalid use of operator '+`);
+                    err(`Invalid use of operator '+'`);
                     break;
             }
 

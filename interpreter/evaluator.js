@@ -311,8 +311,8 @@ module.exports = class {
             this.evaluate(context, klass.init);
         }
 
-        context.environment.exitScope();
         context.self = self;
+        context.environment.exitScope();
 
         return obj;
     }
@@ -339,6 +339,7 @@ module.exports = class {
         }
 
         let object = undefined;
+        let tempObject = call.reference.object;
         
         if (call.reference.object != undefined) {
             object = this.evaluate(context, call.reference.object);
@@ -347,6 +348,8 @@ module.exports = class {
         }
 
         let func = this.evaluate(context, call.reference);
+        call.reference.object = tempObject;
+        
         let name = call.reference.identifier;
 
         // if (func.type != Types.Function) {

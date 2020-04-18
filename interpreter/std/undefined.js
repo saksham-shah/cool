@@ -5,6 +5,8 @@ const NativeExpression = require('../../ast/nativeexpression');
 const Reference = require('../../ast/reference');
 const This = require('../../ast/this');
 
+const Evaluator = require('../../interpreter/evaluator');
+
 const Obj = require('../object');
 const Types = require('../../types/types');
 

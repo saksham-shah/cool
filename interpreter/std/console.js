@@ -1,5 +1,6 @@
 const Class = require('../../ast/class');
 
+const Obj = require('../object');
 const Types = require('../../types/types');
 
 const Evaluator = require('../../interpreter/evaluator');
@@ -9,6 +10,8 @@ const FunctionCall = require('../../ast/functioncall');
 const NativeExpression = require('../../ast/nativeexpression');
 const NumberLiteral = require('../../ast/number');
 const Reference = require('../../ast/reference');
+
+const readline = require('readline-sync');
 
 // Has static functions relating to console input and output
 module.exports = class extends Class {
@@ -47,6 +50,15 @@ module.exports = class extends Class {
             }
 
             console.log(`OUTPUT: ${output}`);
+        })));
+
+        // Input from the console
+        this.statics.set('input', new Func('input', [], new NativeExpression(context => {            
+            let input = readline.question(' INPUT: ');
+
+            let strObj = Obj.create(context, Types.String);
+            strObj.setProperty('.value', input);
+            return strObj;
         })));
 
         // Just a test - the Math class will have this

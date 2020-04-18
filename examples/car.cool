@@ -1,0 +1,25 @@
+extract Console
+
+Car = class (yearModel, make) {
+    init this.speed = new Number(0)
+
+    getYearModel = () => yearModel
+    getMake = () => make
+    getSpeed = () => speed
+
+    accelerate = () => this.speed += 5
+    brake = () => this.speed -= 5
+    
+}
+
+myCar = new Car(2001, "cool car")
+yourCar = new Car(2003, "bad car")
+
+cars = [[myCar, yourCar]]
+
+cars[0][0].accelerate()
+cars[0][1].accelerate()
+
+print(myCar.getSpeed())
+print(yourCar.getSpeed())
+

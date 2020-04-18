@@ -9,31 +9,8 @@ function parseString(text) {
 }
 
 
-let test = {}
+const readline = require('readline-sync');
 
-test.classTest = class {
-    constructor(price) {
-        this.price = price;
-    }
+res = readline.question("INPUT: ");
 
-    getPrice() {
-        console.log(`The price is ${this.price}!!`);
-    }
-}
-
-function getClass() {
-    return class {
-        constructor(price) {
-            this.price = price;
-        }
-    
-        getPrice() {
-            console.log(`The price is ${this.price}!!`);
-        }
-    }
-}
-
-// let car = new test.classTest(65)
-let car = new (new getClass())(87)
-
-console.log(car.getPrice())
+console.log(res == "");
