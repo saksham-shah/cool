@@ -1,12 +1,11 @@
 const Expression = require('./expression');
 
 module.exports = class extends Expression {
-    constructor(identifier, operator, value, object) {
+    constructor(reference, operator, value) {
         super();
-        this.identifier = identifier;
+        this.reference = reference;
         this.operator = operator;
         this.value = value;
-        this.object = object;
     }
 
     isAssignment() {

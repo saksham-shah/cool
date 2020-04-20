@@ -18,8 +18,8 @@ const ConsoleClass = require('./interpreter/std/console');
 let codeText;
 
 // const filename = 'code.cool';
-// const filename = 'examples/division.cool';
-const filename = 'examples/chess/chess.cool';
+const filename = 'examples/car.cool';
+// const filename = 'examples/chess/chess.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -34,8 +34,8 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    // console.log(program.expressions[0].args[0]);
-
+    console.log(program.expressions[0].value);
+/*
     let context = new Context();
 
     context.defaultSelf();
@@ -55,6 +55,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     let result = Evaluator.evaluate(context, program);
 
     context.environment.exitScope();
+    */
 });
 
 function addClass(context, klass) {

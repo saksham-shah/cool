@@ -1,3 +1,3 @@
 extract Console
 
-print(0 and hi())
+new print(0 and hi())
