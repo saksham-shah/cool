@@ -1,6 +1,6 @@
 const Expression = require('./expression');
-const Evaluator = require('../interpreter/evaluator');
-const Types = require('../types/types');
+//const Evaluator = require('../interpreter/evaluator');
+//const Types = require('../types/types');
 
 module.exports = class extends Expression {
     constructor(name, params = [], functions = new Map(), statics = new Map(), superClass = undefined, superArgs = [], init = undefined) {
@@ -17,7 +17,7 @@ module.exports = class extends Expression {
     isClass() {
         return true;
     }
-
+/*
     // Looks for a function in this class
     // If not found, recursively checks the super class
     // RETURNS: Function Expression (or undefined if the function isn't found)
@@ -59,4 +59,5 @@ module.exports = class extends Expression {
             classObj.setProperty(name, obj);
         }
     }
+    */
 }

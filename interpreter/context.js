@@ -1,14 +1,16 @@
 const Environment = require('./environment');
+const Store = require('./store')
 
 const Obj = require('./object');
 const Types = require('../types/types');
 
-// This class may be merged with the environment class,
-// as it has been stripped of all other functionality
 module.exports = class {
     constructor() {
-        // Stores all identifiers and values
+        // Stores all identifiers and their memory addresses
         this.environment = new Environment(this);
+
+        // Stores the actual data
+        this.store = new Store();
 
         // All the classes available in this context - UNUSED
         this.classes = new Map();
@@ -17,21 +19,8 @@ module.exports = class {
         this.self = null;
     }
 
-    // addClass(klass) {
-    //     this.classes.set(klass.name, klass);
-    // }
-
-    // getClass(className) {
-    //     return this.classes.get(className);
-    // }
-
-    // addFunction(func) {
-    //     let value = Obj.create(this, Types.Function);
-    //     value.setProperty('.function', func);
-    //     this.environment.setValue(func.name, value);
-    // }
-
-    // Sets the default self object - UNSURE IF NEEDED
+    // Sets the default self object
+    // This method will likely be removed soon as it is not really needed
     defaultSelf() {
         this.self = Obj.create(this, Types.Object);
     }

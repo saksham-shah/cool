@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Lexer = require('./lexer/lexer');
 const Parser = require('./parser/parser');
+/*
 const Evaluator = require('./interpreter/evaluator');
 
 const Context = require('./interpreter/context');
@@ -14,6 +15,7 @@ const NumberClass = require('./interpreter/std/number');
 const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
 const ConsoleClass = require('./interpreter/std/console');
+*/
 
 let codeText;
 
