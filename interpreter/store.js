@@ -29,7 +29,7 @@ module.exports = class {
         this.locations.push(value);
         this.references.push(1);
 
-        return this.locations.size - 1;
+        return this.locations.length - 1;
     }
 
     // Reads the value at an address
@@ -47,6 +47,7 @@ module.exports = class {
         if (address >= 0 && address < this.locations.length) {
             // If there are other references to this value, it cannot simply be rewritten
             if (this.references[address] > 1) {
+                console.warn(`WARNING: Had to reallocate address ${address}`);
                 this.references[address] -= 1;
                 // A new address is found and the value is stored there
                 return this.alloc(value);

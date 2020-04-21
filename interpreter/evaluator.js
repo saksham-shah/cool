@@ -1,4 +1,5 @@
 const Expression = require('../ast/expression');
+const Assignment = require('../ast/assignment');
 const FunctionCall = require('../ast/functioncall');
 const Reference = require('../ast/reference');
 
@@ -16,13 +17,67 @@ module.exports = class {
     }
 
     // Takes a reference and finds the address it refers to
-    // RETURNS: The address of that reference
-    getAddress(context, reference) {
+    // RETURNS: The address of that reference, or undefined if it hasn't yet been stored
+    static getAddress(context, reference) {
+        let address;
 
+        if (reference.object != undefined) {
+            let obj = this.evaluate(context, reference.object);
+
+            // STUFF - ["this stuff"]
+            let propName = reference.identifier;
+            if (propName instanceof Expression) {
+                // convert it to string/number
+
+                // TODO: deal with array indexing
+            }
+
+            // Look for the property on the object
+            address = obj.getProperty(propName);
+            if (address != undefined) return address;
+
+            // Go through the object class and look for a function with that name
+            if (address != undefined) return address;
+
+            // Create a new property of the object
+            address = context.store.alloc();
+            obj.setProperty(propName, address);
+            return address;
+
+        } else {
+            // Look for the identifier in the current scope
+            address = context.environment.get(reference.identifier);
+            if (address != undefined) return address;
+
+            // Look for the property in the current 'this' object
+            if (context.self != null) {
+                address = context.self.getProperty(reference.identifier);
+                if (address != undefined) return address;
+            }
+
+            // Create a new variable in the current scope
+            address = context.store.alloc();
+            context.environment.set(reference.identifier, address);
+            return address;
+        }
+    }
+
+    static create(context, type) {
+        let address = this.getAddress(context, new Reference(type));
+
+        let obj = new Obj(address);
+
+        obj.type = type;
+
+        return obj;
     }
 
     // RETURNS: Obj
     static evaluate(context, expression) {
+
+        if (expression instanceof Obj) {
+            return expression;
+        }
 
         if (!(expression instanceof Expression)) {
             return expression;
@@ -106,7 +161,26 @@ module.exports = class {
 
     // RETURNS: Obj set in the assignment
     static evaluateAssignment(context, assignment) {
-        // STUFF
+        // Calculate the value - TODO: other operators
+        let value = this.evaluate(context, assignment.value);
+
+        // Store the value
+        let address = this.getAddress(context, assignment.reference);
+
+        // if (address == undefined) {
+        //     address = context.store.alloc(value);
+        // } else {
+        //     context.store.write(address, value);
+        // }
+
+        context.store.write(address, value);
+
+        // If the value object has no address, store its address
+        if (value.address == undefined) {
+            value.address = address;
+        }
+
+        return value;
     }
 
     // RETURNS: Result of the binary expression
@@ -116,7 +190,18 @@ module.exports = class {
 
     // RETURNS: Evaluation of the last expression in the block
     static evaluateBlock(context, block) {
-        // STUFF
+        let latest = this.create(context, Types.Undefined);
+
+        context.environment.enterScope();
+
+        // Returns the result of the last expression
+        for (let expression of block.expressions) {
+            latest = this.evaluate(context, expression);
+        }
+
+        context.environment.exitScope();
+
+        return latest;
     }
 
     // RETURNS: Boolean Obj
@@ -126,7 +211,32 @@ module.exports = class {
 
     // RETURNS: Class Obj
     static evaluateClass(context, klass) {
-        // STUFF
+        // Create the class object
+        let classObj = this.create(context, Types.Class);
+
+        classObj.set('class', klass);
+        
+        // Set its super class if it has one
+        if (klass.superClass != undefined) {
+            let superObj = this.evaluate(context, klass.superClass);
+            if (superObj.address == undefined) {
+                console.log(`Super class has no address - evaluator.js`)
+            }
+            classObj.set('super', superObj.address);
+        }
+
+        let statics = klass.setStatics(context, classObj);
+        for (let [name, expression] of statics) {
+            let assign = new Assignment(new Reference(name, classObj), '=', expression);
+            this.evaluateAssignment(context, assign);
+        }
+
+        if (klass.name != undefined) {
+            let assign = new Assignment(new Reference(klass.name), '=', classObj);
+            this.evaluate(context, assign);
+        }
+
+        return classObj;
     }
 
     // Creates objects when the 'new' keyword is used
@@ -164,7 +274,9 @@ module.exports = class {
 
     // RETURNS: Number Obj
     static evaluateNumberLiteral(context, number) {
-        // STUFF
+        let obj = this.create(context, Types.Number);
+        obj.set('value', number.value);
+        return obj;
     }
 
     // A native expression is an expression written in JavaScript rather than Cool
@@ -177,7 +289,9 @@ module.exports = class {
 
     // RETURNS: Obj that the reference points to
     static evaluateReference(context, reference) {
-        // STUFF
+        let address = this.getAddress(context, reference);
+
+        return context.getValue(address);
     }
 
     // RETURNS: String Obj
