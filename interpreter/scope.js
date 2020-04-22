@@ -44,4 +44,13 @@ module.exports = class {
 
         return stored;
     }
+
+    // Frees up all the space taken up by identifiers stored in this scope
+    // Used before deleting the scope, so the identifiers will no longer be used
+    // RETURNS: Nothing
+    free(context) {
+        for (let address of this.identifiers.values()) {
+            context.store.free(address);
+        }
+    }
 }

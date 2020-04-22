@@ -20,5 +20,31 @@ module.exports = class extends Class {
         this.name = Types.Undefined;
 
         this.superClass = new Reference(Types.Object);
+
+        // Simply returns the other object - does not change the object at all
+        // Same for the other operators
+        this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let result;
+
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', right.get('value'));
+                    break;
+                case Types.Undefined:
+                    result = Evaluator.create(context, Types.Undefined);
+                    break;
+                case Types.String:
+                    result = Evaluator.create(context, Types.String);
+                    result.set('value', right.get('value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '+'`);
+                    break;
+            }
+
+            return result;
+        })));
     }
 }

@@ -22,8 +22,12 @@ const Context = require('./interpreter/context');
 
 const ObjectClass = require('./interpreter/std/obj');
 const ClassClass = require('./interpreter/std/class');
+const FunctionClass = require('./interpreter/std/func');
 const NumberClass = require('./interpreter/std/number');
+const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
+
+const Reference = require('./ast/reference');
 
 let codeText;
 
@@ -54,7 +58,9 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     classes.push(new ObjectClass());
     classes.push(new ClassClass());
+    classes.push(new FunctionClass());
     classes.push(new NumberClass());
+    classes.push(new StringClass());
     classes.push(new UndefinedClass());
 
     addClasses(context, classes);
@@ -71,6 +77,8 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     // }
 
     let result = Evaluator.evaluate(context, program);
+
+    // result = Evaluator.evaluate(context, new Reference('+', ))
 
     console.log(result)
 

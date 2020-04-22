@@ -1,5 +1,20 @@
-{
-    test = 9
+increment = num => {
+    test
 }
 
-test
+
+addThree = num => {
+    test = 10
+    increment(increment(increment(num)))
+}
+
+
+addThree(7)
+
+
+
+x = ("hi" + "hello" + Object.hello.toString()).toString()
+
+y = (x = this.tooString).toString()
+x = 0
+x.toString()

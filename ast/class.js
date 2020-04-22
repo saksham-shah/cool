@@ -19,7 +19,7 @@ module.exports = class extends Expression {
     }
 
     // RETURNS: Map of all static properties of this class (and all super classes)
-    setStatics(context, selfObj, statics = new Map()) {
+    getStatics(context, selfObj, statics = new Map()) {
         // Recursively add the static properties of all super classes
         if (this.superClass != undefined) {
             let superClassAddress = selfObj.get('super');
@@ -28,7 +28,7 @@ module.exports = class extends Expression {
 
             let klass = superClass.get('class');
 
-            klass.setStatics(context, superClass, statics);
+            klass.getStatics(context, superClass, statics);
         }
 
         // Add each static property of this class
@@ -37,6 +37,27 @@ module.exports = class extends Expression {
         }
         
         return statics;
+    }
+
+    // RETURNS: Map of all functions of this class (and all super classes)
+    getFunctions(context, selfObj, functions = new Map()) {
+        // Recursively add the functions of all super classes
+        if (this.superClass != undefined) {
+            let superClassAddress = selfObj.get('super');
+
+            let superClass = context.getValue(superClassAddress);
+
+            let klass = superClass.get('class');
+
+            klass.getFunctions(context, superClass, functions);
+        }
+
+        // Add each function of this class
+        for (let [name, expression] of this.functions) {
+            functions.set(name, expression);
+        }
+        
+        return functions;
     }
 /*
     // Looks for a function in this class

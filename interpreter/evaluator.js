@@ -18,7 +18,7 @@ module.exports = class {
 
     // Takes a reference and finds the address it refers to
     // RETURNS: The address of that reference, or undefined if it hasn't yet been stored
-    static getAddress(context, reference) {
+    static getAddress(context, reference, forceNewScope = false) {
         let address;
 
         if (reference.object != undefined) {
@@ -37,6 +37,22 @@ module.exports = class {
             if (address != undefined) return address;
 
             // Go through the object class and look for a function with that name
+            let classAddress = obj.typeAddress;
+            do {
+                let classObj = context.getValue(classAddress);
+                
+                // Only check if it is a class
+                if (classObj.type == Types.Class) {
+                    let classFuncs = classObj.get('functions');
+                    address = classFuncs.get(propName);
+    
+                    // Recursively check super classes if the function isn't found
+                    classAddress = classObj.get('super');
+                } else {
+                    classAddress = undefined;
+                }
+
+            } while (address == undefined && classAddress != undefined);
             if (address != undefined) return address;
 
             // Create a new property of the object
@@ -57,7 +73,7 @@ module.exports = class {
 
             // Create a new variable in the current scope
             address = context.store.alloc();
-            context.environment.set(reference.identifier, address);
+            context.environment.set(reference.identifier, address, forceNewScope);
             return address;
         }
     }
@@ -169,7 +185,7 @@ module.exports = class {
         let value = this.evaluate(context, assignment.value);
 
         // Store the value
-        let address = this.getAddress(context, assignment.reference);
+        let address = this.getAddress(context, assignment.reference, assignment.forceNewScope);
 
         context.store.write(address, value);
 
@@ -183,7 +199,10 @@ module.exports = class {
 
     // RETURNS: Result of the binary expression
     static evaluateBinaryExpression(context, expression) {
-        // STUFF
+        // The built-in data types have functions for each of the main operators (e.g. +, -, *)
+        let call = new FunctionCall(new Reference(expression.operator, expression.left), [expression.right]);
+        call.copyLocation(expression);
+        return this.evaluateFunctionCall(context, call);
     }
 
     // RETURNS: Evaluation of the last expression in the block
@@ -224,11 +243,23 @@ module.exports = class {
         }
 
         // Assign all static properties of the class
-        let statics = klass.setStatics(context, classObj);
+        let statics = klass.getStatics(context, classObj);
         for (let [name, expression] of statics) {
             let assign = new Assignment(new Reference(name, classObj), '=', expression);
             this.evaluateAssignment(context, assign);
         }
+
+        // Store all functions of this class
+        let functionAddresses = new Map();
+        for (let [name, func] of klass.functions) {
+            let funcObj = this.evaluate(context, func);
+            let address = context.store.alloc(funcObj);
+
+            functionAddresses.set(name, address);
+        }
+
+        // Store the addresses of the functions in the class object
+        classObj.set('functions', functionAddresses);
 
         // If the class has a name, store it as a reference
         if (klass.name != undefined) {
@@ -247,7 +278,15 @@ module.exports = class {
 
     // RETURNS: Function Obj
     static evaluateFunction(context, func) {
-        // STUFF
+        let obj = this.create(context, Types.Function);
+        obj.set('function', func);
+        obj.set('name', func.name != undefined ? func.name : '[Anonymous]');
+        
+        // The scope in which this function was defined
+        obj.set('scope', context.environment.getScopeIndex());
+        // console.log(`Function defined at scopeIndex: ${context.environment.getScopeIndex()}`);
+
+        return obj;
     }
 
     // Searches for the appropriate function to call
@@ -257,14 +296,78 @@ module.exports = class {
             return this.evaluateClassCall(context, call);
         }
 
-        // STUFF
+        // By default, functions are acting on the current 'this' object
+        let object = context.self;
+        let tempObject = call.reference.object;
+
+        // If there is an actual object that the function is acting on, set it as that
+        if (call.reference.object != undefined) {
+            object = this.evaluate(context, call.reference.object);
+
+            // Prevents the object from being evaluated twice
+            call.reference.object = object;
+        }
+
+        let func = this.evaluate(context, call.reference);
+        // Set the object back to the original expression
+        call.reference.object = tempObject;
+
+        // Must be a function obviously
+        if (func.type != Types.Function) {
+            Report.error(`Invalid function call - this error message should be more helpful in future versions`, call);
+        }
+
+        return this.evaluateFunctionCallImpl(context, object, func, call);
     }
 
     // The above function deals with choosing the correct function to use
     // This one actually calls the function and evaluates the arguments
     // RETURNS: Result of the function call
     static evaluateFunctionCallImpl(context, object, func, call) {
-        // STUFF
+        // Evaluate all of the arguments passed into the function
+        let argObjects = [];
+
+        for (let i = 0; i < call.args.length; i++) {
+            argObjects.push(this.evaluate(context, call.args[i]));
+        }
+
+        // Enter a scope to prevent variable name clashes
+        context.environment.enterScope(func.get('scope'));
+
+        func = func.get('function');
+
+        // Add each argument to the scope by setting it to the name of the corresponding parameter
+        for (let i = 0; i < func.params.length; i++) {
+            let thisArgument;
+            if (i >= argObjects.length) {
+                // If a parameter hasn't been passed into a function, it is set as Undefined
+                thisArgument = this.create(context, Types.Undefined);
+            } else {
+                thisArgument = argObjects[i];
+            }
+
+            let assign = new Assignment(new Reference(func.params[i]), '=', thisArgument, true);
+            this.evaluateAssignment(context, assign);
+        }
+
+        // TODO: Create the arguments array
+
+        // Set the 'self' of the context to the object that called the function
+        let self = context.self;
+        context.self = object;
+
+        // Evaluate the function
+        let value = this.evaluate(context, func.body);
+        // By default, functions return Undefined
+        if (value == undefined) {
+            value = this.create(context, Types.Undefined);
+        }
+
+        // Reset the 'self' of the context to what it was before
+        context.self = self;
+        context.environment.exitScope();
+
+        return value;
     }
 
     // RETURNS: Obj
@@ -283,8 +386,7 @@ module.exports = class {
     // Used for built-in data types and functions
     // RETURNS: Result of the native expression
     static evaluateNativeExpression(context, expression) {
-        // STUFF
-        return expression.func(context, Report.throwError);
+        return expression.func(context, Report.error);
     }
 
     // RETURNS: Obj that the reference points to
@@ -296,7 +398,9 @@ module.exports = class {
 
     // RETURNS: String Obj
     static evaluateStringLiteral(context, string) {
-        // STUFF
+        let obj = this.create(context, Types.String);
+        obj.set('value', string.value);
+        return obj;
     }
 
     // RETURNS: Obj

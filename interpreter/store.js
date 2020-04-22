@@ -9,28 +9,34 @@ module.exports = class {
         this.references = [];
 
         // Stores free addresses (of values which are no longer in use)
-        this.free = [];
+        this.freeAddresses = [];
     }
 
     // Takes a value, allocates a memory location for it and stores it
     // RETURNS: the address where it is stored
     alloc(value) {
+        let address;
         // If there are free spaces in the array, fill them first
-        if (this.free.length > 0) {
-            let address = this.free.pop();
+        if (this.freeAddresses.length > 0) {
+            address = this.freeAddresses.pop();
 
             this.locations[address] = value;
             // Set references to 1 as this is the first reference to the new value
             this.references[address] = 1;
+        } else {
+            address = this.locations.length;
 
-            return address;
+            // If there are no free spaces, create a new space in the array
+            this.locations.push(value);
+            this.references.push(1);
         }
 
-        // If there are no free spaces, create a new space in the array
-        this.locations.push(value);
-        this.references.push(1);
+        // If the object doesn't have an address yet, now it does
+        if (value != undefined && value.address == undefined) {
+            value.address = address;
+        }
 
-        return this.locations.length - 1;
+        return address;
     }
 
     // Reads the value at an address
@@ -73,7 +79,7 @@ module.exports = class {
             // If the value has no references, it is no longer in use
             // The address is marked as free
             if (this.references[address] == 0) {
-                this.free.push(address);
+                this.freeAddresses.push(address);
             }
         }
     }

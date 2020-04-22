@@ -38,6 +38,7 @@ module.exports = class {
     // This method will likely be removed soon as it is not really needed
     defaultSelf() {
         this.self = Evaluator.create(this, Types.Object);
+        this.store.alloc(this.self);
     }
 
     /*

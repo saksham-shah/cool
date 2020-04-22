@@ -1,7 +1,9 @@
 const Scope = require('./scope');
 
 module.exports = class {
-    constructor() {
+    constructor(context) {
+        this.context = context;
+
         // The initial scope
         this.scope = new Scope();
 
@@ -34,7 +36,8 @@ module.exports = class {
     // Pops the last scope off the scope stack
     // RETURNS: Nothing
     exitScope() {
-        this.scopes.pop();
+        // Free up all the identifiers used in the previous scope
+        this.scopes.pop().free(this.context);
         this.scope = this.scopes[this.scopes.length - 1];
     }
 
