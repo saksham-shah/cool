@@ -37,7 +37,7 @@ module.exports = class Obj {
         this.devProperties.set(propertyName, value);
     }
 
-    // Checks if this object is a literal
+    // Checks if this object is a literal - UNUSED
     // RETURNS: Boolean
     isLiteral() {
         if (this.type == undefined) return false;

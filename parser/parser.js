@@ -240,6 +240,7 @@ module.exports = class {
     // Currently the highest priority 'operation'
     // Handles dots - e.g. Console.print
     // Handles square bracket properties - e.g. array[7]
+    // Handles function calls - e.g. Math.floor(4.5)
     // The only thing higher up is parseValue which deals with things like brackets
     // RETURNS: Expression
     parseProperty() {
@@ -258,7 +259,6 @@ module.exports = class {
 
                 newValue = new Reference(expr, value);
 
-
             } else if (this.isNext(TokenType.OpenBracket)) {
                 newValue = this.parseFunctionCall(value);
             }
@@ -267,7 +267,7 @@ module.exports = class {
             value = newValue;
         }
 
-        if (this.tokenIsAssignment(this.currentToken)) {
+        if (this.assignmentIsNext()) {
             if (!value.isReference()) {
                 Report.error(`Invalid assignment - assignment must be made to reference`, value)
             }
@@ -593,6 +593,10 @@ module.exports = class {
 
     unaryOperatorIsNext() {
         return this.isNext(TokenType.Plus, TokenType.Minus, TokenType.Not);
+    }
+
+    assignmentIsNext() {
+        return this.isNext(TokenType.Equal, TokenType.PlusEqual, TokenType.MinusEqual, TokenType.TimesEqual, TokenType.DivideEqual, TokenType.ModEqual);
     }
 
     // Similar to the above, but assignment operators are detected slightly differently

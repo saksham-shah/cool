@@ -18,6 +18,7 @@ module.exports = class extends Expression {
         return true;
     }
 
+    // RETURNS: Map of all static properties of this class (and all super classes)
     setStatics(context, selfObj, statics = new Map()) {
         // Recursively add the static properties of all super classes
         if (this.superClass != undefined) {
@@ -27,12 +28,10 @@ module.exports = class extends Expression {
 
             let klass = superClass.get('class');
 
-            // console.log(selfObj);
-
             klass.setStatics(context, superClass, statics);
         }
 
-        // Add each static property
+        // Add each static property of this class
         for (let [name, expression] of this.statics) {
             statics.set(name, expression);
         }

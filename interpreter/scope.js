@@ -13,6 +13,7 @@ module.exports = class {
     get(identifier) {
         let address = this.identifiers.get(identifier);
 
+        // Recursively searches the parent scopes
         if (address == undefined) {
             if (this.parent != null) {
                 address = this.parent.get(identifier);
@@ -26,11 +27,15 @@ module.exports = class {
     // RETURNS: Boolean which says whether the identifier has been stored
     set(identifier, address, forceNewScope = false, replaceOnly = false) {
         let stored = false;
+        // Looks for a variable to replace in a parent scope
+        // If forceNewScope is true, it is forced to create a new identifier in this scope
         if (this.parent != null && !forceNewScope) {
             stored = this.parent.set(identifier, address, false, true);
         }
 
+        // If it hasn't been stored already
         if (!stored) {
+            // Stores in the current scope
             if (this.identifiers.get(identifier) != undefined || !replaceOnly) {
                 this.identifiers.set(identifier, address);
                 stored = true;

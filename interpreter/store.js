@@ -5,6 +5,7 @@ module.exports = class {
 
         // Stores how many references there are to each value
         // Used to figure out when the value can be removed as it is no longer stored anywhere
+        // NOTE: This whole thing may be completely unnecessary
         this.references = [];
 
         // Stores free addresses (of values which are no longer in use)

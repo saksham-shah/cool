@@ -25,6 +25,7 @@ module.exports = class {
             throw new Error("branchIndex out of range - environment.js")
         }
 
+        // Create the new scope
         let newScope = new Scope(parentScope);
         this.scopes.push(newScope);
         this.scope = newScope;
@@ -33,7 +34,14 @@ module.exports = class {
     // Pops the last scope off the scope stack
     // RETURNS: Nothing
     exitScope() {
-        this.scope = this.scopes.pop();
+        this.scopes.pop();
+        this.scope = this.scopes[this.scopes.length - 1];
+    }
+
+    // Used to store the scope in which a function or class has been defined
+    // RETURNS: Index of current scope
+    getScopeIndex() {
+        return this.scopes.length - 1;
     }
 
     // Finds where an identifier is stored

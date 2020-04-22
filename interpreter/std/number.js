@@ -12,7 +12,7 @@ const Types = require('../../types/types');
 
 const TokenType = require('../../lexer/tokenType');
 
-// Number Class - name might change to Num or Number as I don't want a seperate Double class
+// Number Class
 module.exports = class extends Class {
     constructor() {
         super();

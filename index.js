@@ -97,21 +97,11 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     */
 });
 
+// Adds standard classes to the context
 function addClasses(context, classes) {
     for (let klass of classes) {
-        let classObj = Evaluator.evaluateClass(context, klass);
-
-        // let address = context.store.alloc(classObj);
-        // classObj.address = address;
-
-        // context.setClass(klass.name, classObj.address);
-
-        // context.environment.set(klass.name, address);
+        Evaluator.evaluateClass(context, klass);
     }
-
-    // for (let classObj of classObjs) {
-    //     classObj.typeAddress = context.getClass(classObj.type);
-    // }
 }
 
 function addClass(context, klass) {

@@ -16,6 +16,6 @@ module.exports = class extends Class {
         this.name = Types.Object;
 
         this.statics.set('hello', new NumberLiteral(5));
-        // this.statics.set('bye', new NumberLiteral(3));
+        this.statics.set('bye', new NumberLiteral(3));
     }
 }

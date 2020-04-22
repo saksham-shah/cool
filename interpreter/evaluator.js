@@ -62,6 +62,10 @@ module.exports = class {
         }
     }
 
+    // Creates an object of a specified type
+    // Only used to create standard objects like Numbers and Strings
+    // To create user-defined objects, evaluateClassCall is used
+    // RETURNS: Obj
     static create(context, type) {
         let address = this.getAddress(context, new Reference(type));
 
@@ -167,12 +171,6 @@ module.exports = class {
         // Store the value
         let address = this.getAddress(context, assignment.reference);
 
-        // if (address == undefined) {
-        //     address = context.store.alloc(value);
-        // } else {
-        //     context.store.write(address, value);
-        // }
-
         context.store.write(address, value);
 
         // If the value object has no address, store its address
@@ -225,15 +223,17 @@ module.exports = class {
             classObj.set('super', superObj.address);
         }
 
+        // Assign all static properties of the class
         let statics = klass.setStatics(context, classObj);
         for (let [name, expression] of statics) {
             let assign = new Assignment(new Reference(name, classObj), '=', expression);
             this.evaluateAssignment(context, assign);
         }
 
+        // If the class has a name, store it as a reference
         if (klass.name != undefined) {
             let assign = new Assignment(new Reference(klass.name), '=', classObj);
-            this.evaluate(context, assign);
+            this.evaluateAssignment(context, assign);
         }
 
         return classObj;
