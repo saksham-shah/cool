@@ -12,7 +12,7 @@ module.exports = class Report {
     }
 
     static error(message, obj) {
-        if (obj == undefined) {
+        if (obj != undefined) {
             message = `${obj.file}:${obj.line}:${obj.column}: ${message}`;
         }
 

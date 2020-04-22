@@ -24,12 +24,30 @@ module.exports = class {
         if (reference.object != undefined) {
             let obj = this.evaluate(context, reference.object);
 
-            // STUFF - ["this stuff"]
+            // Square bracket properties - ["this stuff"]
             let propName = reference.identifier;
             if (propName instanceof Expression) {
-                // convert it to string/number
+                // Evaluate the expression in the square brackets
+                let result = this.evaluate(context, reference.identifier);
 
-                // TODO: deal with array indexing
+                // If it isn't already a string or number, convert it to a string
+                if (result.type != Types.String && result.type != Types.Number) {
+                    let call = new FunctionCall(new Reference('toString', result));
+                    result = this.evaluateFunctionCall(context, call);
+                }
+
+                // If it is a number
+                // Check if it is an array and access the corresponding array index
+                if (result.type == Types.Number) {
+                    if (obj.type != Types.Array) {
+                        Report.error(`Cannot access numeric property of non-Array object`, reference.identifier);
+                    }
+                    
+                    // TODO: deal with array indexing
+                }
+
+                // Otherwise it is a string and the property name can be retrieved easily
+                propName = result.get('value');
             }
 
             // Look for the property on the object
@@ -100,7 +118,7 @@ module.exports = class {
         }
 
         if (!(expression instanceof Expression)) {
-            return expression;
+            throw new Error("You've probably forgotten a context somewhere.");
         }
 
         if (expression.isArrayLiteral()) {

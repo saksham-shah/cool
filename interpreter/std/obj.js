@@ -32,6 +32,6 @@ module.exports = class extends Class {
             }
 
             return str;
-        })))
+        })));
     }
 }

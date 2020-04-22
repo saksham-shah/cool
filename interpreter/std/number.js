@@ -46,7 +46,13 @@ module.exports = class extends Class {
             }
 
             return result;
-        })))
+        })));
+
+        this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
+            let str = Evaluator.create(context, Types.String);
+            str.set('value', context.self.get('value').toString());
+            return str;
+        })));
 
     }
 }

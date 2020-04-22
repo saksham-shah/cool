@@ -18,3 +18,11 @@ x = ("hi" + "hello" + Object.hello.toString()).toString()
 y = (x = this.tooString).toString()
 x = 0
 x.toString()
+
+
+//Object[undefined + 9] = 0
+Object["\n"] = "hello\"hi there"
+
+Object["\"" + "n"]
+
+
