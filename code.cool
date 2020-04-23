@@ -10,4 +10,10 @@ test2 = () => {
 
 test2()
 
-1 + i * "hi"
+x = ["a", "a", "h"]
+
+//x - (x[0])
+
+Console.print(x - 1)
+
+Console.print(x)

@@ -75,6 +75,13 @@ module.exports = class extends Class {
             return result;
         })));
 
+        // The length of the string
+        this.functions.set('length', new Func('length', [], new NativeExpression(context => {
+            let result = Evaluator.create(context, Types.Number);
+            result.set('value', context.self.get('value').length);
+            return result;
+        })));
+
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             return context.self;
         })));

@@ -50,7 +50,7 @@ module.exports = class {
                     // Allows negative indexing
                     if (index < 0) index += arr.length;
 
-                    if (index >= arr.length) {
+                    if (index < 0 || index >= arr.length) {
                         Report.error(`Array index [${index}] out of range (Array length: ${arr.length})`, reference.identifier);
                     }
 

@@ -84,7 +84,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     // result = Evaluator.evaluate(context, new Reference('+', ))
 
-    console.log(context.store.locations)
+    // console.log(context.store.locations)
 
     console.log(result)
 
