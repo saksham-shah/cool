@@ -48,6 +48,33 @@ module.exports = class extends Class {
             return result;
         })));
 
+        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let result;
+
+            // Different uses of '*' based on data type
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.String);
+                    let str = '';
+                    for (let i = 0; i < right.get('value'); i++) {
+                        str += left.get('value');
+                    }
+                    result.set('value', str);
+                    break;
+                case Types.Undefined:
+                    result = Evaluator.create(context, Types.String);
+                    result.set('value', left.get('value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '*'`);
+                    break;
+            }
+
+            return result;
+        })));
+
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             return context.self;
         })));

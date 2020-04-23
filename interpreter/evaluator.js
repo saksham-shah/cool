@@ -2,6 +2,7 @@ const Expression = require('../ast/expression');
 const Assignment = require('../ast/assignment');
 const FunctionCall = require('../ast/functioncall');
 const Reference = require('../ast/reference');
+const ArrayLiteral = require('../ast/array');
 
 const Obj = require('./object');
 const Types = require('../types/types');
@@ -43,7 +44,17 @@ module.exports = class {
                         Report.error(`Cannot access numeric property of non-Array object`, reference.identifier);
                     }
                     
-                    // TODO: deal with array indexing
+                    // Array indexing
+                    let index = result.get('value');
+                    let arr = obj.get('value');
+                    // Allows negative indexing
+                    if (index < 0) index += arr.length;
+
+                    if (index >= arr.length) {
+                        Report.error(`Array index [${index}] out of range (Array length: ${arr.length})`, reference.identifier);
+                    }
+
+                    return arr[index];
                 }
 
                 // Otherwise it is a string and the property name can be retrieved easily
@@ -194,7 +205,20 @@ module.exports = class {
 
     // RETURNS: Array Obj
     static evaluateArrayLiteral(context, array) {
-        // STUFF
+        let obj = this.create(context, Types.Array);
+        let arrayItems = [];
+
+        // Store each item of the array and store the addresses in the array object
+        for (let item of array.items) {
+            let itemObj = this.evaluate(context, item);
+            let address = context.store.alloc(itemObj);
+
+            arrayItems.push(address);
+        }
+
+        obj.set('value', arrayItems);
+
+        return obj;
     }
 
     // RETURNS: Obj set in the assignment
@@ -207,10 +231,13 @@ module.exports = class {
 
         context.store.write(address, value);
 
+        //console.log(value);
+        //console.log(value.address);
+
         // If the value object has no address, store its address
-        if (value.address == undefined) {
-            value.address = address;
-        }
+        // if (value.address == undefined) {
+        //     value.address = address;
+        // }
 
         return value;
     }
@@ -225,14 +252,17 @@ module.exports = class {
 
     // RETURNS: Evaluation of the last expression in the block
     static evaluateBlock(context, block) {
-        let latest = this.create(context, Types.Undefined);
-
         context.environment.enterScope();
+
+        let latest = this.create(context, Types.Undefined);
 
         // Returns the result of the last expression
         for (let expression of block.expressions) {
             latest = this.evaluate(context, expression);
         }
+        
+        // Stops the value from being deleted when the scope is exited
+        context.store.addPlaceholder(latest);
 
         context.environment.exitScope();
 
@@ -368,7 +398,10 @@ module.exports = class {
             this.evaluateAssignment(context, assign);
         }
 
-        // TODO: Create the arguments array
+        // Create the arguments array
+        let array = new ArrayLiteral(argObjects);
+        let assign = new Assignment(new Reference('arguments'), '=', array, true);
+        this.evaluateAssignment(context, assign);
 
         // Set the 'self' of the context to the object that called the function
         let self = context.self;
@@ -380,6 +413,9 @@ module.exports = class {
         if (value == undefined) {
             value = this.create(context, Types.Undefined);
         }
+
+        // Stops the value from being deleted when the scope is exited
+        context.store.addPlaceholder(value);
 
         // Reset the 'self' of the context to what it was before
         context.self = self;

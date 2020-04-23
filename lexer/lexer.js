@@ -113,7 +113,7 @@ module.exports = class {
         //     //return new Token(TokenType.Newline, 'new line');
         // }
 
-        throw new Error(Report.error(`Unexpected token ${char}`, this.line, this.column, this.file));
+        Report.error(`Unexpected token ${char}`, this);
     }
 
     // Look at the next token without actually moving on to it (used by Parser)
@@ -179,7 +179,7 @@ module.exports = class {
         let result = this.numberFSM.run(this);
 
         if (!result.recognised) {
-            throw new Error(Report.error(`Invalid number ${result.value}`, this.line, this.column, this.file));
+            Report.error(`Invalid number ${result.value}`, this);
         }
 
         let column = this.column;
@@ -193,7 +193,7 @@ module.exports = class {
         let result = this.stringFSM.run(this);
 
         if (!result.recognised) {
-            throw new Error(Report.error(`Invalid string ${result.value}`, this.line, this.column, this.file));
+            Report.error(`Invalid string ${result.value}`, this);
         }
 
         let column = this.column;
@@ -292,11 +292,13 @@ module.exports = class {
                 if (nextChar == '&') {
                     return new Token(TokenType.And, '&&', this.line, column, this.file);
                 }
+                break;
 
             case '|':
                 if (nextChar == '|') {
                     return new Token(TokenType.Or, '||', this.line, column, this.file);
                 }
+                break;
 
             case '>':
                 if (nextChar == '=') {
@@ -309,10 +311,10 @@ module.exports = class {
                     return new Token(TokenType.LessThanOrEqual, '<=', this.line, column, this.file);
                 }
                 return new Token(TokenType.LessThan, '<', this.line, column, this.file);
-
-            default:
-                throw new Error(Report.error(`Unexpected token ${char}`, this.line, column, this.file));
         }
+
+        this.column--;
+        Report.error(`Unexpected token ${char}`, this);
     }
 
     recogniseBracket(char) {
@@ -339,7 +341,8 @@ module.exports = class {
                 return new Token(TokenType.CloseBrace, '}', this.line, this.column - 1, this.file);
 
             default:
-                throw new Error(Report.error(`Unexpected token ${char}`, this.line, this.column - 1, this.file));
+                this.column--;
+                Report.error(`Unexpected token ${char}`, this);
 
         }
 

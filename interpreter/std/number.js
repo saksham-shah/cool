@@ -21,6 +21,7 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        // Arithmetic operators
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
@@ -42,6 +43,98 @@ module.exports = class extends Class {
                     break;
                 default:
                     err(`Invalid use of operator '+'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let result;
+
+            // Different uses of '-' based on data type
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', left.get('value') - right.get('value'));
+                    break;
+                case Types.Undefined:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', left.get('value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '-'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let result;
+
+            // Different uses of '*' based on data type
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', left.get('value') * right.get('value'));
+                    break;
+                case Types.String:
+                    result = Evaluator.create(context, Types.String);
+                    let str = '';
+                    for (let i = 0; i < left.get('value'); i++) {
+                        str += right.get('value');
+                    }
+                    result.set('value', str);
+                    break;
+                case Types.Undefined:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', left.get('value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '*'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('/', new Func('/', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let result;
+
+            // Different uses of '/' based on data type
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', Math.floor(left.get('value') / right.get('value')));
+                    break;
+                default:
+                    err(`Invalid use of operator '/'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('%', new Func('%', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let result;
+
+            // Different uses of '%' based on data type
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', left.get('value') % right.get('value'));
+                    break;
+                default:
+                    err(`Invalid use of operator '%'`);
                     break;
             }
 

@@ -23,9 +23,11 @@ const Context = require('./interpreter/context');
 const ObjectClass = require('./interpreter/std/obj');
 const ClassClass = require('./interpreter/std/class');
 const FunctionClass = require('./interpreter/std/func');
+const ArrayClass = require('./interpreter/std/array');
 const NumberClass = require('./interpreter/std/number');
 const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
+const ConsoleClass = require('./interpreter/std/console');
 
 const Reference = require('./ast/reference');
 
@@ -50,7 +52,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    console.log(program.expressions[0]);
+    console.log(program.expressions);
 
     let context = new Context();
 
@@ -59,9 +61,11 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     classes.push(new ObjectClass());
     classes.push(new ClassClass());
     classes.push(new FunctionClass());
+    classes.push(new ArrayClass());
     classes.push(new NumberClass());
     classes.push(new StringClass());
     classes.push(new UndefinedClass());
+    classes.push(new ConsoleClass());
 
     addClasses(context, classes);
 
@@ -80,7 +84,10 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     // result = Evaluator.evaluate(context, new Reference('+', ))
 
+    console.log(context.store.locations)
+
     console.log(result)
+
 
 /*
     let context = new Context();

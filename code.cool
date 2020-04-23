@@ -1,28 +1,13 @@
-increment = num => {
-    test
+test = () => {
+    items = 3
 }
 
-
-addThree = num => {
-    test = 10
-    increment(increment(increment(num)))
+test2 = () => {
+    items = 2
+    test()
+    Console.print(items)
 }
 
+test2()
 
-addThree(7)
-
-
-
-x = ("hi" + "hello" + Object.hello.toString()).toString()
-
-y = (x = this.tooString).toString()
-x = 0
-x.toString()
-
-
-//Object[undefined + 9] = 0
-Object["\n"] = "hello\"hi there"
-
-Object["\"" + "n"]
-
-
+1 + i * "hi"

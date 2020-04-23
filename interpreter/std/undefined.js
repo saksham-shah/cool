@@ -21,6 +21,8 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        // Arithmetic operators
+
         // Simply returns the other object - does not change the object at all
         // Same for the other operators
         this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
@@ -32,15 +34,59 @@ module.exports = class extends Class {
                     result = Evaluator.create(context, Types.Number);
                     result.set('value', right.get('value'));
                     break;
+                case Types.String:
+                    result = Evaluator.create(context, Types.String);
+                    result.set('value', right.get('value'));
+                    break;
                 case Types.Undefined:
                     result = Evaluator.create(context, Types.Undefined);
+                    break;
+                default:
+                    err(`Invalid use of operator '+'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let result;
+
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', -right.get('value'));
+                    break;
+                case Types.Undefined:
+                    result = Evaluator.create(context, Types.Undefined);
+                    break;
+                default:
+                    err(`Invalid use of operator '-'`);
+                    break;
+            }
+
+            return result;
+        })));
+
+        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
+            let right = context.getValue(context.environment.get('right'));
+            let result;
+
+            switch (right.type) {
+                case Types.Number:
+                    result = Evaluator.create(context, Types.Number);
+                    result.set('value', right.get('value'));
                     break;
                 case Types.String:
                     result = Evaluator.create(context, Types.String);
                     result.set('value', right.get('value'));
                     break;
+                case Types.Undefined:
+                    result = Evaluator.create(context, Types.Undefined);
+                    break;
                 default:
-                    err(`Invalid use of operator '+'`);
+                    err(`Invalid use of operator '*'`);
                     break;
             }
 
