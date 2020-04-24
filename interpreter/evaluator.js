@@ -2,6 +2,7 @@ const Expression = require('../ast/expression');
 const Assignment = require('../ast/assignment');
 const FunctionCall = require('../ast/functioncall');
 const Reference = require('../ast/reference');
+const This = require('../ast/this');
 const ArrayLiteral = require('../ast/array');
 
 const Obj = require('./object');
@@ -21,6 +22,16 @@ module.exports = class {
     // RETURNS: The address of that reference, or undefined if it hasn't yet been stored
     static getAddress(context, reference, forceNewScope = false) {
         let address;
+
+        // If the reference is already an object, just return the object's address
+        if (reference instanceof Obj) {
+            address = reference.address;
+            if (address != undefined) return address;
+
+            // Give the object an address if it doesn't have one
+            address = context.store.alloc(reference);
+            return address;
+        }
 
         if (reference.object != undefined) {
             let obj = this.evaluate(context, reference.object);
@@ -123,13 +134,20 @@ module.exports = class {
 
     // RETURNS: Obj
     static evaluate(context, expression) {
-
+        // If the 'expression' is already an object, just return it
         if (expression instanceof Obj) {
             return expression;
         }
 
+        // I always forget the context parameter of this function
         if (!(expression instanceof Expression)) {
             throw new Error("You've probably forgotten a context somewhere.");
+        }
+
+        // Used to figure out where an error has occured
+        // Keeps track of how far in the program it has already gotten
+        if (expression.line != -1 && expression.column != -1) {
+            Report.latestObj = expression;
         }
 
         if (expression.isArrayLiteral()) {
@@ -231,14 +249,6 @@ module.exports = class {
 
         context.store.write(address, value);
 
-        //console.log(value);
-        //console.log(value.address);
-
-        // If the value object has no address, store its address
-        // if (value.address == undefined) {
-        //     value.address = address;
-        // }
-
         return value;
     }
 
@@ -284,11 +294,20 @@ module.exports = class {
         // Set its super class if it has one
         if (klass.superClass != undefined) {
             let superObj = this.evaluate(context, klass.superClass);
+
+            // Ensures the super class is actually a class
+            if (superObj.type != Types.Class) {
+                Report.error(`Super class must be a class`, klass.superClass);
+            }
+
             if (superObj.address == undefined) {
                 console.log(`Super class has no address - evaluator.js`)
             }
             classObj.set('super', superObj.address);
         }
+
+        // The scope in which this class was defined
+        classObj.set('scope', context.environment.getScopeIndex());
 
         // Assign all static properties of the class
         let statics = klass.getStatics(context, classObj);
@@ -319,9 +338,97 @@ module.exports = class {
     }
 
     // Creates objects when the 'new' keyword is used
+    // Similar to evaluateFunctionCallImpl in many ways
     // RETURNS: Obj
     static evaluateClassCall(context, call) {
-        // STUFF
+        // Get the class' address and the actual Class object
+        let classAddress = this.getAddress(context, call.reference);
+        let classObj = context.getValue(classAddress);
+
+        if (classObj.type != Types.Class) {
+            console.log(call.reference);
+            Report.error(`Constructor call must refer to class`, call);
+        }
+
+        // Evaluate all of the arguments passed into the constructor
+        let argObjects = [];
+
+        for (let i = 0; i < call.args.length; i++) {
+            argObjects.push(this.evaluate(context, call.args[i]));
+        }
+
+        // Enter a scope to prevent variable name clashes
+        context.environment.enterScope(classObj.get('scope'));
+
+        let klass = classObj.get('class');
+
+        // Add each argument to the scope by setting it to the name of the corresponding parameter
+        for (let i = 0; i < klass.params.length; i++) {
+            let thisArgument;
+            if (i >= argObjects.length) {
+                // If a parameter hasn't been passed into the constructor, it is set as Undefined
+                thisArgument = this.create(context, Types.Undefined);
+            } else {
+                thisArgument = argObjects[i];
+            }
+
+            let assign = new Assignment(new Reference(klass.params[i]), '=', thisArgument, true);
+            this.evaluateAssignment(context, assign);
+        }
+
+        // Create the arguments array
+        let array = new ArrayLiteral(argObjects);
+        let assign = new Assignment(new Reference('arguments'), '=', array, true);
+        this.evaluateAssignment(context, assign);
+
+        let obj;
+
+        // If the class inherits from something, recursively call the super constructor
+        if (klass.superClass != undefined) {
+            // Get the super class object
+            let superClassAddress = classObj.get('super');
+            let superClassObj = context.getValue(superClassAddress);
+
+            // Call the super class constructor
+            let superCall = new FunctionCall(superClassObj, klass.superArgs);
+            superCall.copyLocation(call);
+            superCall.constructor = true;
+
+            // Get the super object and set its typeAddress to this class
+            obj = this.evaluate(context, superCall);
+            obj.typeAddress = classAddress;
+        } else {
+            // Otherwise just create a new object of this class
+            obj = new Obj(classAddress);
+        }
+
+        // 'this' will point to the object
+        let self = context.self;
+        context.self = obj;
+
+        // Add all of the arguments which were passed into the constructor
+        for (let i = 0; i < klass.params.length; i++) {
+            if (i < argObjects.length) {
+                let assign = new Assignment(new Reference(klass.params[i], new This()), '=', argObjects[i]);
+                this.evaluateAssignment(context, assign);
+            }
+        }
+
+        // Run the 'init' expression of the class
+        if (klass.init != undefined) {
+            this.evaluate(context, klass.init);
+        }
+
+        // Stops the object from being deleted when the scope is exited
+        // Not completely sure if this is needed
+        // But it is used in evaluateFunctionCallImpl so I just used it here too
+        context.store.addPlaceholder(obj);
+        
+        // Reset the 'self' of the context to what it was before
+        context.self = self;
+        context.environment.exitScope();
+
+        return obj;
     }
 
     // RETURNS: Function Obj

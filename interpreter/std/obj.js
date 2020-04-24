@@ -17,9 +17,6 @@ module.exports = class extends Class {
 
         this.name = Types.Object;
 
-        this.statics.set('hello', new NumberLiteral(5));
-        this.statics.set('bye', new NumberLiteral(3));
-
         this.functions.set('toString', new Func('toString', [], new NativeExpression(context => {
             let type = context.self.type == undefined ? 'Object' : context.self.type;
 

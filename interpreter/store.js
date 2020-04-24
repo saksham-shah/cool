@@ -6,13 +6,16 @@ module.exports = class {
         // Stores how many references there are to each value
         // Used to figure out when the value can be removed as it is no longer stored anywhere
         // NOTE: This whole thing may be completely unnecessary
-        this.references = [];
+        // this.references = [];
 
         // Stores free addresses (of values which are no longer in use)
         this.freeAddresses = [];
 
+        // One buffer memory location to temporarily store an object that may be assigned
+        this.placeholder = undefined;
+
         // Stores placeholder addresses for values waiting to be assigned
-        this.placeholders = [];
+        // this.placeholders = [];
     }
 
     // Takes a value, allocates a memory location for it and stores it
@@ -25,19 +28,19 @@ module.exports = class {
 
             this.locations[address] = value;
             // Set references to 1 as this is the first reference to the new value
-            this.references[address] = 1;
+            // this.references[address] = 1;
         } else {
             address = this.locations.length;
 
             // If there are no free spaces, create a new space in the array
             this.locations.push(value);
-            this.references.push(1);
+            // this.references.push(1);
         }
 
         // Add this address to the object
         if (value != undefined) {
             value.addAddress(address);
-            this.updatePlaceholders(value);
+            this.freePlaceholder(address);
         }
 
         // If the object doesn't have an address yet, now it does
@@ -63,7 +66,7 @@ module.exports = class {
         if (address >= 0 && address < this.locations.length) {
             // Adds this address to the object
             value.addAddress(address);
-            this.updatePlaceholders(value);
+            this.freePlaceholder(address);
 
             // Frees up this address before overwriting it
             this.free(address, false);
@@ -125,28 +128,40 @@ module.exports = class {
     // Stores this object as a placeholder while it is waiting to be assigned
     // RETURNS: Nothing
     addPlaceholder(obj) {
+        // Free the previous placeholder as there should never be more than one
+        if (this.placeholder != undefined) {
+            this.free(this.placeholder);
+        }
+
         let address = this.alloc(obj);
-        this.placeholders.push(address);
+        this.placeholder = address;
+
+        // this.placeholders.push(address);
     }
 
-    // Checks if the object is stored at a placeholder address
-    // If it is, it removes it from that address
+    // Frees up the current placeholder if an object is stored in a different memory location
     // RETURNS: Nothing
-    updatePlaceholders(obj) {
-        for (let i = this.placeholders.length - 1; i >= 0; i--) {
-            if (obj.hasAddress(this.placeholders[i])) {
-                this.free(this.placeholders[i]);
-                this.placeholders.splice(i, 1);
-            }
+    freePlaceholder(address) {
+        // if (obj.hasAddress(this.placeholder)) {
+        if (address != this.placeholder) {
+            this.free(this.placeholder);
+            this.placeholder = undefined;
         }
+        
+        // for (let i = this.placeholders.length - 1; i >= 0; i--) {
+        //     if (obj.hasAddress(this.placeholders[i])) {
+        //         this.free(this.placeholders[i]);
+        //         this.placeholders.splice(i, 1);
+        //     }
+        // }
     }
 
     // Increments the number of references of this address - UNUSED
     // RETURNS: The new number of references
-    addReference(address) {
-        if (address >= 0 && address < this.locations.length) {
-            this.references[address]++;
-            return this.references[address];
-        }
-    }
+    // addReference(address) {
+    //     if (address >= 0 && address < this.locations.length) {
+    //         this.references[address]++;
+    //         return this.references[address];
+    //     }
+    // }
 }

@@ -1,5 +1,7 @@
 // Utility class for error reporting
 module.exports = class Report {
+    static latestObj = undefined;
+    
     static err(message, line, column, file = '') {
         console.log("Illegal error");
         if (line == undefined && column == undefined) return message;
@@ -12,6 +14,10 @@ module.exports = class Report {
     }
 
     static error(message, obj) {
+        if (obj == undefined) {
+            obj = Report.latestObj;
+        }
+
         if (obj != undefined) {
             message = `${obj.file}:${obj.line}:${obj.column}: ${message}`;
         }

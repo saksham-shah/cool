@@ -1,19 +1,30 @@
-test = () => {
-    items = 3
+
+Car = class (yearModel, make) {
+    init {this.speed = 0}
+
+    getYearModel = () => yearModel
+    getMake = () => make
+    getSpeed = () => speed
+
+    accelerate = () => this.speed = this.speed + 5
+    brake = () => this.speed = this.speed - 5
+    
 }
 
-test2 = () => {
-    items = 2
-    test()
-    Console.print(items)
+RedCar = class(yearModel) extends Car(yearModel, "red") {
+
 }
 
-test2()
+myCar = new Car(2001, "cool car")
+yourCar = new RedCar(2003, "bad car")
 
-x = ["a", "a", "h"]
+cars = [[myCar, yourCar]]
 
-//x - (x[0])
+//cars[0][0].accelerate()
+//cars[0][1].accelerate()
 
-Console.print(x - 1)
 
-Console.print(x)
+Console.print(myCar.getMake())
+Console.print(yourCar.getMake())
+
+1 + Console

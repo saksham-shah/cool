@@ -86,7 +86,11 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     // console.log(context.store.locations)
 
-    console.log(result)
+    console.log(result);
+
+    console.log(context.store.freeAddresses);
+
+    console.log(`Memory used: ${context.store.locations.length - context.store.freeAddresses.length}/${context.store.locations.length}`)
 
 
 /*
