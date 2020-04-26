@@ -1,8 +1,12 @@
 a = [1, 2, 3, 4, 5]
 
-a + 5
+b = a + 6
 
-Console.print(a)
+b = [1]
+
+b
+
+Console.print(b == [1])
 
 /*
 Car = class (yearModel, make) {

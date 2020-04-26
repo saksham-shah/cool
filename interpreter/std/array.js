@@ -21,6 +21,144 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        // Comparison operators
+        this.functions.set(TokenType.DoubleEquals, new Func(TokenType.DoubleEquals, ['right'], new NativeExpression(context => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let bool = Evaluator.create(context, Types.Boolean);
+
+            // Different ways of comparing depending on data type
+            switch (right.type) {
+                case Types.Array:
+                    // Maybe it should check each item and see if they are equal?
+                    if (left.get('value').length == 0) {
+                        bool.set('value', right.get('value') == 0);
+                    } else {
+                        bool.set('value', left.address == right.address);
+                    }
+                    break;
+                case Types.Boolean:
+                    bool.set('value', left.get('value').length > 0);
+                    break;
+                case Types.Number:
+                    bool.set('value', left.get('value').length == right.get('value'));
+                    break;
+                default:
+                    bool.set('value', false);
+                    break;
+            }
+
+            return bool;
+        })));
+
+        this.functions.set(TokenType.GreaterThan, new Func(TokenType.GreaterThan, ['right'], new NativeExpression(context => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let bool = Evaluator.create(context, Types.Boolean);
+
+            // Different ways of comparing depending on data type
+            switch (right.type) {
+                case Types.Array:
+                    bool.set('value', left.get('value').length > right.get('value').length);
+                    break;
+                case Types.Number:
+                    bool.set('value', left.get('value').length > right.get('value'));
+                    break;
+                case Types.String:
+                    bool.set('value', left.get('value').length > right.get('value').length);
+                    break;
+                case Types.Undefined:
+                    bool.set('value', true);
+                    break;
+                default:
+                    err(`Invalid use of operator '${TokenType.GreaterThan}'`);
+                    break;
+            }
+
+            return bool;
+        })));
+
+        this.functions.set(TokenType.GreaterThanOrEqual, new Func(TokenType.GreaterThanOrEqual, ['right'], new NativeExpression(context => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let bool = Evaluator.create(context, Types.Boolean);
+
+            // Different ways of comparing depending on data type
+            switch (right.type) {
+                case Types.Array:
+                    bool.set('value', left.get('value').length >= right.get('value').length);
+                    break;
+                case Types.Number:
+                    bool.set('value', left.get('value').length >= right.get('value'));
+                    break;
+                case Types.String:
+                    bool.set('value', left.get('value').length >= right.get('value').length);
+                    break;
+                case Types.Undefined:
+                    bool.set('value', true);
+                    break;
+                default:
+                    err(`Invalid use of operator '${TokenType.GreaterThanOrEqual}'`);
+                    break;
+            }
+
+            return bool;
+        })));
+
+        this.functions.set(TokenType.LessThan, new Func(TokenType.LessThan, ['right'], new NativeExpression(context => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let bool = Evaluator.create(context, Types.Boolean);
+
+            // Different ways of comparing depending on data type
+            switch (right.type) {
+                case Types.Array:
+                    bool.set('value', left.get('value').length < right.get('value').length);
+                    break;
+                case Types.Number:
+                    bool.set('value', left.get('value').length < right.get('value'));
+                    break;
+                case Types.String:
+                    bool.set('value', left.get('value').length < right.get('value').length);
+                    break;
+                case Types.Undefined:
+                    bool.set('value', true);
+                    break;
+                default:
+                    err(`Invalid use of operator '${TokenType.LessThan}'`);
+                    break;
+            }
+
+            return bool;
+        })));
+
+        this.functions.set(TokenType.LessThanOrEqual, new Func(TokenType.LessThanOrEqual, ['right'], new NativeExpression(context => {
+            let right = context.getValue(context.environment.get('right'));
+            let left = context.self;
+            let bool = Evaluator.create(context, Types.Boolean);
+
+            // Different ways of comparing depending on data type
+            switch (right.type) {
+                case Types.Array:
+                    bool.set('value', left.get('value').length <= right.get('value').length);
+                    break;
+                case Types.Number:
+                    bool.set('value', left.get('value').length <= right.get('value'));
+                    break;
+                case Types.String:
+                    bool.set('value', left.get('value').length <= right.get('value').length);
+                    break;
+                case Types.Undefined:
+                    bool.set('value', true);
+                    break;
+                default:
+                    err(`Invalid use of operator '${TokenType.LessThanOrEqual}'`);
+                    break;
+            }
+
+            return bool;
+        })));
+
         // Add an item at the end of the array
         this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['item'], new NativeExpression(context => {
             let item = context.getValue(context.environment.get('item'));
@@ -63,6 +201,9 @@ module.exports = class extends Class {
             return removedItem;
         })));
 
+        // Standard functions
+
+        // Goes through each item and calls a function on it
         this.functions.set('forEach', new Func('forEach', ['func'], new NativeExpression((context, err) => {
             let func = context.getValue(context.environment.get('func'));
             if (func.type != Types.Function) {
@@ -85,6 +226,13 @@ module.exports = class extends Class {
             let result = Evaluator.create(context, Types.Number);
             result.set('value', context.self.get('value').length);
             return result;
+        })));
+
+        // to_ functions
+        this.functions.set('toBoolean', new Func('toBoolean', [], new NativeExpression(context => {
+            let bool = Evaluator.create(context, Types.Boolean);
+            bool.set('value', context.self.get('value').length > 0);
+            return bool;
         })));
 
         this.functions.set('toString', new Func('toString', ['level'], new NativeExpression(context => {

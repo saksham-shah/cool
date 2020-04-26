@@ -82,6 +82,8 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     //     console.log(context.store.locations[i]);
     // }
 
+    console.log(`Standard library size: ${context.store.locations.length - context.store.freeAddresses.length}`)
+
     let result = Evaluator.evaluate(context, program);
 
     // result = Evaluator.evaluate(context, new Reference('+', ))

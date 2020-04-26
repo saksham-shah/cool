@@ -21,6 +21,21 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        // Comparison operator
+        this.functions.set(TokenType.DoubleEquals, new Func(TokenType.DoubleEquals, ['right'], new NativeExpression(context => {
+            // Check what boolean the other object evaluates to
+            let call = new FunctionCall(new Reference('toBoolean', new Reference('right')));
+            let bool = Evaluator.evaluateFunctionCall(call);
+
+            // If this boolean is false, flip the result
+            if (!context.self.get('value')) {
+                bool.set('value', !bool.get('value'));
+            }
+
+            return bool;
+        })));
+
+        // to_ functions
         this.functions.set('toBoolean', new Func('toBoolean', [], new NativeExpression(context => {
             let bool = Evaluator.create(context, Types.Boolean);
             bool.set('value', context.self.get('value'));
