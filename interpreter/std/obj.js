@@ -61,15 +61,31 @@ module.exports = class extends Class {
             return bool;
         })));
 
+        // Unary operators
+        this.functions.set('unary_' + TokenType.Not, new Func('unary_' + TokenType.Not, [], new NativeExpression(context => {
+            // Evaluate the object to a boolean
+            let call = new FunctionCall(new Reference('toBoolean', new This()));
+            let bool = Evaluator.evaluateFunctionCall(context, call);
+            
+            // Flip the boolean
+            bool.set('value', !bool.get('value'));
+
+            return bool;
+        })));
+
         // to_ functions
         this.functions.set('toBoolean', new Func('toBoolean', [], new NativeExpression(context => {
             // Check how many properties the object has
-            let references = context.self.getReferences().length;
+            // let references = context.self.getReferences().length;
             
             let bool = Evaluator.create(context, Types.Boolean);
             // If the object has no references (i.e. it's an empty object), it is false
             // Otherwise it is true
-            bool.set('value', references > 0);
+            // bool.set('value', references > 0);
+
+            // All objects are true
+            // In the future, empty objects should be false
+            bool.set('value', true);
 
             return bool;
         })));

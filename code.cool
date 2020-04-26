@@ -1,39 +1,458 @@
-a = [1, 2, 3, 4, 5]
+//extract Console
 
-b = a + 6
+// This whole file was rushed to test the class system
+// Maybe one day it will have comments
 
-b = [1]
-
-b
-
-Console.print(b == [1])
-
-/*
-Car = class (yearModel, make) {
-    init {this.speed = 0}
-
-    getYearModel = () => yearModel
-    getMake = () => make
-    getSpeed = () => speed
-
-    accelerate = () => this.speed = this.speed + 5
-    brake = () => this.speed = this.speed - 5
-    
+board = []
+while board < 8 {
+    row = []
+    while row < 8
+        row += undefined
+    board += row
 }
 
-RedCar = class(yearModel) extends Car(yearModel, "red") {
+alphabet = ["a", "b", "c", "d", "e", "f", "g", "h"]//"abcdefgh"
+numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]//"0123456789"
 
+letters = new Object()
+letters.king = "K"
+letters.queen = "Q"
+letters.rook = "R"
+letters.bishop = "B"
+letters.knight = "N"
+letters.pawn = "P"
+
+directions = []
+directions += [1, 0]
+directions += [1, 1]
+directions += [0, 1]
+directions += [-1, 1]
+directions += [-1, 0]
+directions += [-1, -1]
+directions += [0, -1]
+directions += [1, -1]
+
+int = (numStr) => {
+    counter = 0
+    returnVal = -1
+    while counter < 10 {
+        if (numbers[counter] == numStr) {
+            returnVal = counter
+        }
+        counter += 1
+    }
+    returnVal
 }
 
-myCar = new Car(2001, "cool car")
-yourCar = new RedCar(2003, "bad car")
+printBoard = () => {
+    row = 7
+    col = 0
+    while row >= 0 {
+        col = 0
+        rowStr = ""
 
-//cars = [[myCar, yourCar]]
+        while col < 8 {
+            //print("on", row, col)
+            rowStr += if board[row][col] == undefined "." else board[row][col].getLetter()
+            //rowStr += "."
+            if board[row][col] != undefined {
+                //print(board[row][col].type)
+                //print(board[row][col].getType())
+            }
+            col += 1
+        }
+        row -= 1
+        Console.print(rowStr)
+    }
+}
 
-//cars[0][0].accelerate()
-//cars[0][1].accelerate()
+onBoard = (row, col) => {
+    row >= 0 and row < 8 and col >= 0 and col < 8
+}
 
+occupied = (row, col) => {
+    thisPiece = board[row][col]
 
-Console.print(myCar.getMake())
-Console.print(yourCar.getSpeed())
-*/
+    thisPiece != undefined
+}
+
+selfOccupied = (team, row, col) => {
+    thisPiece = board[row][col]
+
+    thisPiece != undefined and thisPiece.team == team
+}
+
+enemyOccupied = (team, row, col) => {
+    thisPiece = board[row][col]
+
+    thisPiece != undefined and thisPiece.team != team
+}
+
+coorToString = (row, col) => {
+    alphabet[col] + (row + 1)
+}
+
+humanReadableMove = (move) => {
+    gridSpace = coorToString(move[0], move[1])
+
+    if (board[move[0]][move[1]] == undefined) {
+        "Move to " + gridSpace
+    } else {
+        "Take " + board[move[0]][move[1]].type + " at " + gridSpace
+    }
+}
+
+Piece = class (team, type, row, col) {
+
+    static id = 0
+
+    init {
+        this.id = Piece.id
+        Piece.id += 1
+        this.moved = no
+    }
+
+    getLetter = () => {
+        letters[this.type]
+    }
+
+    getType = () => this.type
+
+    place = () => {
+        board[this.row][this.col] = this
+    }
+
+    move = (row, col) => {
+        board[this.row][this.col] = undefined
+        this.row = row;
+        this.col = col;
+
+        if (board[this.row][this.col] != undefined) {
+            enemyPieces = pieces[1 - this.team]
+            enemy = board[this.row][this.col]
+            counter = 0
+            while counter < enemyPieces {
+                if (enemyPieces[counter].id == enemy.id) {
+                    enemyPieces - counter
+                    Console.print("Removed enemy", enemy.type, "at index", counter)
+                }
+                counter += 1
+            }
+        }
+
+        this.place()
+
+        this.moved = yes
+    }
+
+    toString = () => {
+        this.type + " at " + coorToString(this.row, this.col)
+    }
+}
+
+King = class (team, row, col) extends Piece (team, "king", row, col) {
+    getMoves = () => {
+        moves = []
+
+        dir = -1
+        while (dir += 1) < 8 {
+            possibleRow = this.row + directions[dir][0]
+            possibleCol = this.col + directions[dir][1]
+
+            if (onBoard(possibleRow, possibleCol)) {
+                if (!selfOccupied(this.team, possibleRow, possibleCol)) {
+                    moves += [possibleRow, possibleCol]
+                }
+            }
+        }
+
+        moves
+    }
+}
+
+Queen = class (team, row, col) extends Piece (team, "queen", row, col) {
+    getMoves = () => {
+        moves = []
+
+        dir = -1
+        while (dir += 1) < 8 {
+            blocked = no
+
+            possibleRow = this.row
+            possibleCol = this.col
+
+            while (!blocked) {
+                possibleRow += directions[dir][0]
+                possibleCol += directions[dir][1]
+
+                blocked = yes
+                if (onBoard(possibleRow, possibleCol)) {
+                    if (!selfOccupied(this.team, possibleRow, possibleCol)) {
+                        moves += [possibleRow, possibleCol]
+                    }
+
+                    if !occupied(possibleRow, possibleCol) {
+                        blocked = no
+                    }
+                }
+            }
+        }
+
+        moves
+    }
+}
+
+Rook = class (team, row, col) extends Piece (team, "rook", row, col) {
+    getMoves = () => {
+        moves = []
+
+        dir = -2
+        while (dir += 2) < 8 {
+            blocked = no
+
+            possibleRow = this.row
+            possibleCol = this.col
+
+            while (!blocked) {
+                possibleRow += directions[dir][0]
+                possibleCol += directions[dir][1]
+
+                blocked = yes
+                if (onBoard(possibleRow, possibleCol)) {
+                    if (!selfOccupied(this.team, possibleRow, possibleCol)) {
+                        moves += [possibleRow, possibleCol]
+                    }
+
+                    if !occupied(possibleRow, possibleCol) {
+                        blocked = no
+                    }
+                }
+            }
+        }
+
+        moves
+    }
+}
+
+Bishop = class (team, row, col) extends Piece (team, "bishop", row, col) {
+    getMoves = () => {
+        moves = []
+
+        dir = -1
+        while (dir += 2) < 8 {
+            blocked = no
+
+            possibleRow = this.row
+            possibleCol = this.col
+
+            while (!blocked) {
+                possibleRow += directions[dir][0]
+                possibleCol += directions[dir][1]
+
+                blocked = yes
+                if (onBoard(possibleRow, possibleCol)) {
+                    if (!selfOccupied(this.team, possibleRow, possibleCol)) {
+                        moves += [possibleRow, possibleCol]
+                    }
+
+                    if !occupied(possibleRow, possibleCol) {
+                        blocked = no
+                    }
+                }
+            }
+        }
+
+        moves
+    }
+}
+
+Knight = class (team, row, col) extends Piece (team, "knight", row, col) {
+    getMoves = () => {
+        moves = []
+
+        dir = -2
+        while (dir += 2) < 8 {
+            //possibleRow = this.row + directions[dir][0] * 2
+            //possibleCol = this.col + directions[dir][1] * 2
+
+            count = 0
+            while (count += 1) <= 2 {
+                newDir
+                if (count == 1) {
+                    newDir = dir - 2
+                    if (newDir < 0) newDir += 8
+                } else {
+                    newDir = dir + 2
+                    if (newDir >= 8) newDir -= 8
+                }
+
+                possibleRow = this.row + directions[dir][0] * 2 + directions[newDir][0]
+                possibleCol = this.col + directions[dir][1] * 2 + directions[newDir][1]
+
+                if (onBoard(possibleRow, possibleCol)) {
+                    if (!selfOccupied(this.team, possibleRow, possibleCol)) {
+                        moves += [possibleRow, possibleCol]
+                    }
+                }
+            }
+        }
+
+        moves
+    }
+}
+
+Pawn = class (team, row, col) extends Piece (team, "pawn", row, col) {
+    getMoves = () => {
+        moves = []
+
+        possibleRow = this.row
+        possibleRow += if this.team { -1 } else 1
+
+        colOffset = -2
+        while (colOffset += 1) <= 1 {
+            possibleCol = this.col + colOffset
+
+            if (onBoard(possibleRow, possibleCol)) {
+                if (!selfOccupied(this.team, possibleRow, possibleCol)) {
+                    if (!occupied(possibleRow, possibleCol)) {
+                        if (colOffset == 0) {
+                            moves += [possibleRow, possibleCol]
+
+                            possibleRow += if this.team { -1 } else 1
+                            if (onBoard(possibleRow, possibleCol) and !this.moved) {
+                                if (!occupied(possibleRow, possibleCol)) {
+                                    moves += [possibleRow, possibleCol]
+                                }
+                            }
+
+                            possibleRow -= if this.team { -1 } else 1
+                        }
+
+                    } else if (colOffset != 0) {
+                        moves += [possibleRow, possibleCol]
+                    }
+                }
+            }
+        }
+
+        moves
+    }
+}
+
+whitePieces = []
+whitePieces += new Rook(0, 0, 0)
+whitePieces += new Knight(0, 0, 1)
+whitePieces += new Bishop(0, 0, 2)
+whitePieces += new Queen(0, 0, 3)
+whitePieces += new King(0, 0, 4)
+whitePieces += new Bishop(0, 0, 5)
+whitePieces += new Knight(0, 0, 6)
+whitePieces += new Rook(0, 0, 7)
+whitePieces += new Pawn(0, 1, 0)
+whitePieces += new Pawn(0, 1, 1)
+whitePieces += new Pawn(0, 1, 2)
+whitePieces += new Pawn(0, 1, 3)
+whitePieces += new Pawn(0, 1, 4)
+whitePieces += new Pawn(0, 1, 5)
+whitePieces += new Pawn(0, 1, 6)
+whitePieces += new Pawn(0, 1, 7)
+
+blackPieces = []
+blackPieces += new Rook(1, 7, 0)
+blackPieces += new Knight(1, 7, 1)
+blackPieces += new Bishop(1, 7, 2)
+blackPieces += new Queen(1, 7, 3)
+blackPieces += new King(1, 7, 4)
+blackPieces += new Bishop(1, 7, 5)
+blackPieces += new Knight(1, 7, 6)
+blackPieces += new Rook(1, 7, 7)
+blackPieces += new Pawn(1, 6, 0)
+blackPieces += new Pawn(1, 6, 1)
+blackPieces += new Pawn(1, 6, 2)
+blackPieces += new Pawn(1, 6, 3)
+blackPieces += new Pawn(1, 6, 4)
+blackPieces += new Pawn(1, 6, 5)
+blackPieces += new Pawn(1, 6, 6)
+blackPieces += new Pawn(1, 6, 7)
+
+pieces = [whitePieces, blackPieces];
+
+whitePieces.forEach((item) => item.place())
+blackPieces.forEach((item) => item.place())
+
+printAllMoves = (team) => {
+    thesePieces = pieces[team]
+
+    thesePieces.forEach(piece => {
+        Console.print(piece)
+
+        possibleMoves = piece.getMoves()
+
+        possibleMoves.forEach(move => {
+            Console.print(humanReadableMove(move))
+        })
+    })
+}
+
+//whitePieces[12].move(2, 4)
+//whitePieces[11].move(3, 3)
+//whitePieces[1].move(4, 2)
+
+//print(selfOccupied(0, 7, 7))
+
+//blackPieces[3].move(3, 5)
+
+printBoard()
+
+doTurn = (team) => {
+    colour = if team "Black" else "White"
+    Console.print(colour + "'s turn!")
+
+    Console.print()
+
+    printBoard()
+
+    thesePieces = pieces[team]
+    possibleMoves = []
+    possiblePieces = []
+
+    Console.print()
+    Console.print("Choose a piece to move:")
+    Console.print()
+
+    thesePieces.forEach(piece => {
+        theseMoves = piece.getMoves()
+
+        if (theseMoves.length() > 0) {
+            possibleMoves += theseMoves
+            possiblePieces += piece
+            Console.print("[" + possibleMoves.length() + "]", piece)
+        }
+    })
+    Console.print()
+
+    chosenIndex = int(Console.input()) - 1
+
+    Console.print()
+    Console.print("Choose a move for this piece:")
+    Console.print()
+
+    possibleMoves[chosenIndex].forEach((thisMove, thisIndex) => {
+        Console.print("[" + (thisIndex + 1) + "]", humanReadableMove(thisMove))
+    })
+    Console.print()
+
+    chosenMoveIndex = int(Console.input()) - 1
+    Console.print()
+
+    chosenMove = possibleMoves[chosenIndex][chosenMoveIndex]
+    possiblePieces[chosenIndex].move(chosenMove[0], chosenMove[1])
+}
+
+whoseTurn = 0
+while yes {
+    doTurn(whoseTurn)
+    whoseTurn = 1 - whoseTurn
+}
+
+//printAllMoves(0)

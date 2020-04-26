@@ -33,7 +33,7 @@ module.exports = class {
             return address;
         }
 
-        if (reference.object != undefined) {
+        if (reference.object != undefined && !forceNewScope) {
             let obj = this.evaluate(context, reference.object);
 
             // Square bracket properties - ["this stuff"]
@@ -106,7 +106,7 @@ module.exports = class {
             if (address != undefined) return address;
 
             // Look for the property in the current 'this' object
-            if (context.self != null) {
+            if (context.self != null && !forceNewScope) {
                 address = context.self.getProperty(reference.identifier);
                 if (address != undefined) return address;
             }
@@ -241,8 +241,16 @@ module.exports = class {
 
     // RETURNS: Obj set in the assignment
     static evaluateAssignment(context, assignment) {
-        // Calculate the value - TODO: other operators
-        let value = this.evaluate(context, assignment.value);
+        // Calculate the value
+        let value;
+        if (assignment.operator == '=') {
+            value = this.evaluate(context, assignment.value);
+        } else {
+            // Other operators like '+='
+            // Checks the first character and calls the apprpriate function
+            let call = new FunctionCall(new Reference(assignment.operator[0], assignment.reference), [assignment.value]);
+            value = this.evaluateFunctionCall(context, call);
+        }
 
         // Store the value
         let address = this.getAddress(context, assignment.reference, assignment.forceNewScope);
@@ -443,6 +451,12 @@ module.exports = class {
         obj.set('scope', context.environment.getScopeIndex());
         // console.log(`Function defined at scopeIndex: ${context.environment.getScopeIndex()}`);
 
+        if (!(context.self instanceof Obj)) {
+            Report.error(`Serious problem here, evaluateFunction evaluator.js`)
+        }
+        // What the 'this' object will be when this function is called
+        obj.set('this', context.store.alloc(context.self));
+
         return obj;
     }
 
@@ -454,7 +468,8 @@ module.exports = class {
         }
 
         // By default, functions are acting on the current 'this' object
-        let object = context.self;
+        // let object = context.self;
+        let object;
         let tempObject = call.reference.object;
 
         // If there is an actual object that the function is acting on, set it as that
@@ -474,6 +489,11 @@ module.exports = class {
             Report.error(`Invalid function call - this error message should be more helpful in future versions`, call);
         }
 
+        // If there is no calling object, set the object to what it was when the function was defined
+        if (object == undefined) {
+            object = context.getValue(func.get('this'));
+        }
+
         return this.evaluateFunctionCallImpl(context, object, func, call);
     }
 
@@ -490,6 +510,10 @@ module.exports = class {
 
         // Enter a scope to prevent variable name clashes
         context.environment.enterScope(func.get('scope'));
+        
+        // Set the 'self' of the context to the object that called the function
+        let self = context.self;
+        context.self = object;
 
         func = func.get('function');
 
@@ -512,10 +536,6 @@ module.exports = class {
         let assign = new Assignment(new Reference('arguments'), '=', array, true);
         this.evaluateAssignment(context, assign);
 
-        // Set the 'self' of the context to the object that called the function
-        let self = context.self;
-        context.self = object;
-
         // Evaluate the function
         let value = this.evaluate(context, func.body);
         // By default, functions return Undefined
@@ -535,7 +555,25 @@ module.exports = class {
 
     // RETURNS: Obj
     static evaluateIfElse(context, ifElse) {
-        // STUFF
+        // Determine whether the condition evaluates to true
+        let call = new FunctionCall(new Reference('toBoolean', ifElse.condition));
+        let bool = this.evaluateFunctionCall(context, call);
+        
+        let result;
+        if (bool.get('value')) {
+            // If the condition is true
+            result = this.evaluate(context, ifElse.thenBlock);
+        } else {
+            if (ifElse.elseBlock != undefined) {
+                // Only evaluate the else block if there is one
+                result = this.evaluate(context, ifElse.elseBlock);
+            } else {
+                // Return undefined by default
+                result = this.create(context, Types.Undefined);
+            }
+        }
+
+        return result;
     }
 
     // RETURNS: Number Obj
@@ -573,16 +611,38 @@ module.exports = class {
 
     // RETURNS: Result of the unary expression
     static evaluateUnaryExpression(context, expression) {
-        // STUFF
+        // The built-in data types have functions for each of the main unary operators (e.g. +, -, !)
+        let call = new FunctionCall(new Reference('unary_' + expression.operator, expression.expression));
+        call.copyLocation(expression);
+        return this.evaluateFunctionCall(context, call);
     }
 
     // RETURNS: Undefined Obj
     static evaluateUndefinedLiteral(context, undef) {
-        // STUFF
+        let obj = this.create(context, Types.Undefined);
+        return obj;
     }
 
     // RETURNS: Array Obj
     static evaluateWhile(context, whileExpr) {
-        // STUFF
+        // Initial condition evaluation
+        let call = new FunctionCall(new Reference('toBoolean', whileExpr.condition));
+        let bool = this.evaluateFunctionCall(context, call);
+        
+        // Returns an array of the evaluations of each loop
+        let array = [];
+
+        while (bool.get('value')) {
+            array.push(this.evaluate(context, whileExpr.body));
+
+            // Redo the condition after every loop
+            call = new FunctionCall(new Reference('toBoolean', whileExpr.condition));
+            bool = this.evaluateFunctionCall(context, call);
+        }
+
+        // Create the array
+        let result = this.evaluateArrayLiteral(context, new ArrayLiteral(array));
+
+        return result;
     }
 }

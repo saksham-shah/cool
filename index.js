@@ -53,7 +53,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     let program = parser.parseProgram();
 
-    console.log(program.expressions);
+    // console.log(program.expressions);
 
     let context = new Context();
 
@@ -90,11 +90,11 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     // console.log(context.store.locations)
 
-    console.log(result);
+    //console.log(result);
 
-    console.log(context.store.freeAddresses);
+    //console.log(context.store.freeAddresses);
 
-    console.log(`Memory used: ${context.store.locations.length - context.store.freeAddresses.length}/${context.store.locations.length}`)
+    //console.log(`Memory used: ${context.store.locations.length - context.store.freeAddresses.length}/${context.store.locations.length}`)
 
 
 /*
