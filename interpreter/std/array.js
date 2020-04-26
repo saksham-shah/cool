@@ -22,7 +22,7 @@ module.exports = class extends Class {
         this.superClass = new Reference(Types.Object);
 
         // Add an item at the end of the array
-        this.functions.set('+', new Func('+', ['item'], new NativeExpression(context => {
+        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['item'], new NativeExpression(context => {
             let item = context.getValue(context.environment.get('item'));
             // Store the new item in memory and store its address
             let address = context.store.alloc(item);
@@ -33,7 +33,7 @@ module.exports = class extends Class {
         })));
 
         // Remove at item at a specified index (returns the removed item)
-        this.functions.set('-', new Func('-', ['index'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['index'], new NativeExpression((context, err) => {
             let indexObj = context.getValue(context.environment.get('index'));
 
             // Array index must be a number
@@ -48,7 +48,7 @@ module.exports = class extends Class {
             if (index < 0) index += arr.length;
             // Array index must be in range
             if (index < 0 || index >= arr.length) {
-                err(`Invalid use of operator '-' (Array index [${index}] out of range)`);
+                err(`Invalid use of operator '${TokenType.Minus}' (Array index [${index}] out of range)`);
             }
 
             // Get the removed item

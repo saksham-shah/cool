@@ -1,5 +1,7 @@
 module.exports = class {
-    constructor() {
+    constructor(context) {
+        this.context = context;
+
         // Stores all of the values in use
         this.locations = [];
 
@@ -12,10 +14,11 @@ module.exports = class {
         this.freeAddresses = [];
 
         // One buffer memory location to temporarily store an object that may be assigned
-        this.placeholder = undefined;
+        // this.placeholder = undefined;
 
         // Stores placeholder addresses for values waiting to be assigned
-        // this.placeholders = [];
+        this.placeholders = [];
+        this.placeholderScopes = [];
     }
 
     // Takes a value, allocates a memory location for it and stores it
@@ -40,7 +43,8 @@ module.exports = class {
         // Add this address to the object
         if (value != undefined) {
             value.addAddress(address);
-            this.freePlaceholder(address);
+            //this.freePlaceholder(address);
+            this.checkPlaceholders(value);
         }
 
         // If the object doesn't have an address yet, now it does
@@ -66,7 +70,8 @@ module.exports = class {
         if (address >= 0 && address < this.locations.length) {
             // Adds this address to the object
             value.addAddress(address);
-            this.freePlaceholder(address);
+            // this.freePlaceholder(address);
+            this.checkPlaceholders(value);
 
             // Frees up this address before overwriting it
             this.free(address, false);
@@ -129,14 +134,15 @@ module.exports = class {
     // RETURNS: Nothing
     addPlaceholder(obj) {
         // Free the previous placeholder as there should never be more than one
-        if (this.placeholder != undefined) {
-            this.free(this.placeholder);
-        }
+        // if (this.placeholder != undefined) {
+        //     this.free(this.placeholder);
+        // }
 
         let address = this.alloc(obj);
-        this.placeholder = address;
+        // this.placeholder = address;
 
-        // this.placeholders.push(address);
+        this.placeholders.push(address);
+        this.placeholderScopes.push(this.context.environment.getScopeIndex());
     }
 
     // Frees up the current placeholder if an object is stored in a different memory location
@@ -154,6 +160,32 @@ module.exports = class {
         //         this.placeholders.splice(i, 1);
         //     }
         // }
+    }
+
+    // Checks if this object is stored in a placeholder address
+    // If it is, it removes it from that address
+    // RETURNS: Nothing
+    checkPlaceholders(obj) {
+        for (let i = this.placeholders.length - 1; i >= 0; i--) {
+            if (obj.hasAddress(this.placeholders[i])) {
+                this.free(this.placeholders[i]);
+                this.placeholders.splice(i, 1);
+                this.placeholderScopes.splice(i, 1);
+            }
+        }
+    }
+
+    // Cleans up all placeholders from a specified scope
+    // Placeholders are cleaned after two scopes are exited from their creation
+    // RETURNS: Nothing
+    cleanPlaceholders(scopeIndex) {
+        for (let i = this.placeholders.length - 1; i >= 0; i--) {
+            if (this.placeholderScopes[i] >= scopeIndex) {
+                this.free(this.placeholders[i]);
+                this.placeholders.splice(i, 1);
+                this.placeholderScopes.splice(i, 1);
+            }
+        }
     }
 
     // Increments the number of references of this address - UNUSED

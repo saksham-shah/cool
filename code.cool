@@ -1,4 +1,10 @@
+a = [1, 2, 3, 4, 5]
 
+a + 5
+
+Console.print(a)
+
+/*
 Car = class (yearModel, make) {
     init {this.speed = 0}
 
@@ -18,13 +24,12 @@ RedCar = class(yearModel) extends Car(yearModel, "red") {
 myCar = new Car(2001, "cool car")
 yourCar = new RedCar(2003, "bad car")
 
-cars = [[myCar, yourCar]]
+//cars = [[myCar, yourCar]]
 
 //cars[0][0].accelerate()
 //cars[0][1].accelerate()
 
 
 Console.print(myCar.getMake())
-Console.print(yourCar.getMake())
-
-1 + Console
+Console.print(yourCar.getSpeed())
+*/

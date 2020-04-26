@@ -22,7 +22,7 @@ module.exports = class extends Class {
         this.superClass = new Reference(Types.Object);
 
         // Arithmetic operators
-        this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -42,14 +42,14 @@ module.exports = class extends Class {
                     result.set('value', left.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '+'`);
+                    err(`Invalid use of operator '${TokenType.Plus}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -65,14 +65,14 @@ module.exports = class extends Class {
                     result.set('value', left.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '-'`);
+                    err(`Invalid use of operator '${TokenType.Minus}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -96,14 +96,14 @@ module.exports = class extends Class {
                     result.set('value', left.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '*'`);
+                    err(`Invalid use of operator '${TokenType.Times}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('/', new Func('/', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Divide, new Func(TokenType.Divide, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -115,14 +115,14 @@ module.exports = class extends Class {
                     result.set('value', Math.floor(left.get('value') / right.get('value')));
                     break;
                 default:
-                    err(`Invalid use of operator '/'`);
+                    err(`Invalid use of operator '${TokenType.Divide}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('%', new Func('%', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Mod, new Func(TokenType.Mod, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -134,7 +134,7 @@ module.exports = class extends Class {
                     result.set('value', left.get('value') % right.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '%'`);
+                    err(`Invalid use of operator '${TokenType.Mod}'`);
                     break;
             }
 

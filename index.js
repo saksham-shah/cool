@@ -24,6 +24,7 @@ const ObjectClass = require('./interpreter/std/obj');
 const ClassClass = require('./interpreter/std/class');
 const FunctionClass = require('./interpreter/std/func');
 const ArrayClass = require('./interpreter/std/array');
+const BooleanClass = require('./interpreter/std/boolean');
 const NumberClass = require('./interpreter/std/number');
 const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
@@ -62,6 +63,7 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     classes.push(new ClassClass());
     classes.push(new FunctionClass());
     classes.push(new ArrayClass());
+    classes.push(new BooleanClass());
     classes.push(new NumberClass());
     classes.push(new StringClass());
     classes.push(new UndefinedClass());

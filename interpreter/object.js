@@ -105,6 +105,21 @@ module.exports = class Obj {
             }
         }
 
+        // Adds references related to classes
+        if (this.type == Types.Class) {
+            // All methods/functions of this class
+            let funcs = this.get('functions').values();
+            for (let address of funcs) {
+                addresses.push(address);;
+            }
+
+            // The super class
+            let superAddress = this.get('super');
+            if (superAddress != undefined) {
+               addresses.push(superAddress);
+            }
+        }
+
         return addresses;
     }
 

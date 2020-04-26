@@ -281,7 +281,9 @@ module.exports = class {
 
     // RETURNS: Boolean Obj
     static evaluateBooleanLiteral(context, boolean) {
-        // STUFF
+        let obj = this.create(context, Types.Boolean);
+        obj.set('value', boolean.value);
+        return obj;
     }
 
     // RETURNS: Class Obj
@@ -303,7 +305,7 @@ module.exports = class {
             if (superObj.address == undefined) {
                 console.log(`Super class has no address - evaluator.js`)
             }
-            classObj.set('super', superObj.address);
+            classObj.set('super', context.store.alloc(superObj));
         }
 
         // The scope in which this class was defined

@@ -25,7 +25,7 @@ module.exports = class extends Class {
 
         // Simply returns the other object - does not change the object at all
         // Same for the other operators
-        this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let result;
 
@@ -42,14 +42,14 @@ module.exports = class extends Class {
                     result = Evaluator.create(context, Types.Undefined);
                     break;
                 default:
-                    err(`Invalid use of operator '+'`);
+                    err(`Invalid use of operator '${TokenType.Plus}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('-', new Func('-', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let result;
 
@@ -62,14 +62,14 @@ module.exports = class extends Class {
                     result = Evaluator.create(context, Types.Undefined);
                     break;
                 default:
-                    err(`Invalid use of operator '-'`);
+                    err(`Invalid use of operator '${TokenType.Minus}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let result;
 
@@ -86,7 +86,7 @@ module.exports = class extends Class {
                     result = Evaluator.create(context, Types.Undefined);
                     break;
                 default:
-                    err(`Invalid use of operator '*'`);
+                    err(`Invalid use of operator '${TokenType.Times}'`);
                     break;
             }
 

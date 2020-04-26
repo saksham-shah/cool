@@ -11,7 +11,7 @@ module.exports = class {
         this.environment = new Environment(this);
 
         // Stores the actual data
-        this.store = new Store();
+        this.store = new Store(this);
 
         // All the named classes available in this context
         this.classes = new Map();

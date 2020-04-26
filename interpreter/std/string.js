@@ -21,7 +21,7 @@ module.exports = class extends Class {
         this.superClass = new Reference(Types.Object);
 
         // Functions for each operator, similar to the Number class
-        this.functions.set('+', new Func('+', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -41,14 +41,14 @@ module.exports = class extends Class {
                     result.set('value', left.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '+'`);
+                    err(`Invalid use of operator '${TokenType.Plus}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set('*', new Func('*', ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression((context, err) => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -68,7 +68,7 @@ module.exports = class extends Class {
                     result.set('value', left.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '*'`);
+                    err(`Invalid use of operator '${TokenType.Times}'`);
                     break;
             }
 

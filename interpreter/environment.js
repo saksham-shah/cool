@@ -39,6 +39,9 @@ module.exports = class {
         // Free up all the identifiers used in the previous scope
         this.scopes.pop().free(this.context);
         this.scope = this.scopes[this.scopes.length - 1];
+
+        // Clean up any placeholders from two scopes ago
+        this.context.store.cleanPlaceholders(this.scopes.length + 1);
     }
 
     // Used to store the scope in which a function or class has been defined

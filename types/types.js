@@ -4,7 +4,7 @@ module.exports = {
     Number: 'Number',
     Undefined: 'Undefined',
     Function: 'Function',
-    Bool: 'Boolean',
+    Boolean: 'Boolean',
     Class: 'Class',
     String: 'String',
     Array: 'Array',
