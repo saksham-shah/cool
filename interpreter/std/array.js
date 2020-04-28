@@ -176,7 +176,7 @@ module.exports = class extends Class {
 
             // Array index must be a number
             if (indexObj.type != Types.Number) {
-                err(`Invalid use of operator '-' (Array index to remove must be Number)`);
+                err(`Invalid use of operator '${TokenType.Minus}' (Array index to remove must be Number)`);
             }
 
             let arr = context.self.get('value');
@@ -194,8 +194,7 @@ module.exports = class extends Class {
             let removedItem = context.getValue(address);
 
             // Stop the value from being deleted when its address is freed
-            // To see why the 0 is required, check evaluator.js:evaluateWhile
-            context.store.addPlaceholder(removedItem, 0);
+            context.store.addPlaceholder(removedItem);
             // Free the address as it is no longer being used
             context.store.free(address);
 

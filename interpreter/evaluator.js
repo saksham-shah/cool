@@ -35,6 +35,7 @@ module.exports = class {
 
         if (reference.object != undefined && !forceNewScope) {
             let obj = this.evaluate(context, reference.object);
+            context.store.pushTemp(obj);
 
             // Square bracket properties - ["this stuff"]
             let propName = reference.identifier;
@@ -65,6 +66,7 @@ module.exports = class {
                         Report.error(`Array index [${index}] out of range (Array length: ${arr.length})`, reference.identifier);
                     }
 
+                    context.store.popTemp();
                     return arr[index];
                 }
 
@@ -74,7 +76,10 @@ module.exports = class {
 
             // Look for the property on the object
             address = obj.getProperty(propName);
-            if (address != undefined) return address;
+            if (address != undefined) {
+                context.store.popTemp();
+                return address;
+            }
 
             // Go through the object class and look for a function with that name
             let classAddress = obj.typeAddress;
@@ -93,11 +98,15 @@ module.exports = class {
                 }
 
             } while (address == undefined && classAddress != undefined);
-            if (address != undefined) return address;
+            if (address != undefined) {
+                context.store.popTemp();
+                return address;
+            }
 
             // Create a new property of the object
             address = context.store.alloc();
             obj.setProperty(propName, address);
+            context.store.popTemp();
             return address;
 
         } else {
@@ -252,10 +261,13 @@ module.exports = class {
             value = this.evaluateFunctionCall(context, call);
         }
 
+        context.store.pushTemp(value);
+
         // Store the value
         let address = this.getAddress(context, assignment.reference, assignment.forceNewScope);
 
         context.store.write(address, value);
+        context.store.popTemp();
 
         return value;
     }
@@ -298,6 +310,7 @@ module.exports = class {
     static evaluateClass(context, klass) {
         // Create the class object
         let classObj = this.create(context, Types.Class);
+        context.store.pushTemp(classObj);
 
         classObj.set('class', klass);
         
@@ -354,6 +367,9 @@ module.exports = class {
             this.evaluateAssignment(context, assign);
         }
 
+        context.store.addPlaceholder(classObj);
+        context.store.popTemp();
+
         return classObj;
     }
 
@@ -364,6 +380,7 @@ module.exports = class {
         // Get the class' address and the actual Class object
         let classAddress = this.getAddress(context, call.reference);
         let classObj = context.getValue(classAddress);
+        context.store.pushTemp(classObj);
 
         if (classObj.type != Types.Class) {
             console.log(call.reference);
@@ -372,15 +389,19 @@ module.exports = class {
 
         // Evaluate all of the arguments passed into the constructor
         let argObjects = [];
+        let temps = [];
 
         for (let i = 0; i < call.args.length; i++) {
-            argObjects.push(this.evaluate(context, call.args[i]));
+            let obj = this.evaluate(context, call.args[i]);
+            argObjects.push(obj);
+            temps.push(context.store.alloc(obj));
         }
 
         // Enter a scope to prevent variable name clashes
         context.environment.enterScope(classObj.get('scope'));
 
         let klass = classObj.get('class');
+        context.store.popTemp();
 
         // Add each argument to the scope by setting it to the name of the corresponding parameter
         for (let i = 0; i < klass.params.length; i++) {
@@ -400,6 +421,10 @@ module.exports = class {
         let array = new ArrayLiteral(argObjects);
         let assign = new Assignment(new Reference('arguments'), '=', array, true);
         this.evaluateAssignment(context, assign);
+
+        for (let add of temps) {
+            context.store.free(add);
+        }
 
         let obj;
 
@@ -422,6 +447,8 @@ module.exports = class {
             obj = new Obj(classAddress);
         }
 
+        context.store.pushTemp(obj);
+
         // 'this' will point to the object
         let self = context.self;
         context.self = obj;
@@ -443,6 +470,7 @@ module.exports = class {
         // Not completely sure if this is needed
         // But it is used in evaluateFunctionCallImpl so I just used it here too
         context.store.addPlaceholder(obj);
+        context.store.popTemp();
         
         // Reset the 'self' of the context to what it was before
         context.self = self;
@@ -492,7 +520,7 @@ module.exports = class {
             // Prevents the object from being evaluated twice
             call.reference.object = object;
         }
-        
+
         let func = this.evaluate(context, call.reference);
         // Set the object back to the original expression
         call.reference.object = tempObject;
@@ -521,9 +549,12 @@ module.exports = class {
     static evaluateFunctionCallImpl(context, object, func, call) {
         // Evaluate all of the arguments passed into the function
         let argObjects = [];
+        let temps = [];
 
         for (let i = 0; i < call.args.length; i++) {
-            argObjects.push(this.evaluate(context, call.args[i]));
+            let obj = this.evaluate(context, call.args[i]);
+            argObjects.push(obj);
+            temps.push(context.store.alloc(obj));
         }
 
         // Enter a scope to prevent variable name clashes
@@ -554,6 +585,10 @@ module.exports = class {
         let assign = new Assignment(new Reference('arguments'), '=', array, true);
         this.evaluateAssignment(context, assign);
 
+        for (let add of temps) {
+            context.store.free(add);
+        }
+
         // Evaluate the function
         let value = this.evaluate(context, func.body);
         // By default, functions return Undefined
@@ -567,9 +602,6 @@ module.exports = class {
         // Reset the 'self' of the context to what it was before
         context.self = self;
         context.environment.exitScope();
-
-        // If the calling object is stored at a placeholder, remove it
-        context.store.checkPlaceholders(object);
 
         return value;
     }
@@ -652,9 +684,12 @@ module.exports = class {
         
         // Returns an array of the evaluations of each loop
         let array = [];
+        let temps = [];
 
         while (bool.get('value')) {
-            array.push(this.evaluate(context, whileExpr.body));
+            let obj = this.evaluate(context, whileExpr.body);
+            array.push(obj);
+            temps.push(context.store.alloc(obj));
 
             // Redo the condition after every loop
             call = new FunctionCall(new Reference('toBoolean', whileExpr.condition));
@@ -663,13 +698,12 @@ module.exports = class {
 
         // Create the array and store it in a placeholder
         let result = this.evaluateArrayLiteral(context, new ArrayLiteral(array));
+
+        for (let add of temps) {
+            context.store.free(add);
+        }
         
-        // Why is there a 0 there?
-        // Usually placeholders are created just before a scope is exited, so by default that value is -1
-        // Except for this situation, where no scope is being exited
-        // To make up for that, the placeholder is created one level higher (at 0)
-        // As if it was created in a scope that has now been exited
-        context.store.addPlaceholder(result, 0);
+        context.store.addPlaceholder(result);
         
         return result;
     }

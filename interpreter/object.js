@@ -65,7 +65,7 @@ module.exports = class Obj {
             for (let i = this.otherAddresses.length - 1; i >= 0; i--) {
                 if (this.otherAddresses[i] == address) {
                     this.otherAddresses.splice(i, 1);
-                    //STUFF return this.address;
+                    return this.address;
                 }
             }
         }
