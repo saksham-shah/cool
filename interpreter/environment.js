@@ -41,7 +41,7 @@ module.exports = class {
         this.scope = this.scopes[this.scopes.length - 1];
 
         // Clean up any placeholders from two scopes ago
-        this.context.store.cleanPlaceholders(this.scopes.length + 1);
+        this.context.store.cleanPlaceholders(this.scopes.length);
     }
 
     // Used to store the scope in which a function or class has been defined

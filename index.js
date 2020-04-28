@@ -36,9 +36,9 @@ let codeText;
 
 let classes = [];
 
-const filename = 'code.cool';
-// const filename = 'examples/car.cool';
-// const filename = 'examples/chess/chess.cool';
+// const filename = 'code.cool';
+// const filename = 'examples/collatz.cool';
+const filename = 'examples/chess/chess2.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -84,6 +84,8 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     console.log(`Standard library size: ${context.store.locations.length - context.store.freeAddresses.length}`)
 
+    //console.log(context.store.locations)
+
     let result = Evaluator.evaluate(context, program);
 
     // result = Evaluator.evaluate(context, new Reference('+', ))
@@ -92,9 +94,9 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     //console.log(result);
 
-    //console.log(context.store.freeAddresses);
+    console.log(context.store.freeAddresses);
 
-    //console.log(`Memory used: ${context.store.locations.length - context.store.freeAddresses.length}/${context.store.locations.length}`)
+    console.log(`Memory used: ${context.store.locations.length - context.store.freeAddresses.length}/${context.store.locations.length}`)
 
 
 /*

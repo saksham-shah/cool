@@ -6,6 +6,9 @@ module.exports = class extends Expression {
         this.name = name;
         this.params = params;
         this.body = body;
+
+        // Whether the function is a method of a class
+        this.isClassMethod = false;
     }
 
     isFunction() {

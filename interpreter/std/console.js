@@ -39,6 +39,12 @@ module.exports = class extends Class {
                 let str = Evaluator.evaluate(context, call);
 
                 output += str.get('value');
+
+                // Debugging
+                //call = new Reference(new NumberLiteral(i), new Reference('arguments'));
+                //let obj = Evaluator.evaluate(context, call);
+                //console.log(obj);
+
             }
 
             console.log(`OUTPUT: ${output}`);

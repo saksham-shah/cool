@@ -322,13 +322,23 @@ module.exports = class {
         // Assign all static properties of the class
         let statics = klass.getStatics(context, classObj);
         for (let [name, expression] of statics) {
+            if (expression.isFunction()) {
+                expression.isClassMethod = true;
+            }
+
             let assign = new Assignment(new Reference(name, classObj), '=', expression);
-            this.evaluateAssignment(context, assign);
+            let obj = this.evaluateAssignment(context, assign);
+
+            // Static functions operate on the Class object that they are a part of
+            if (obj.type == Types.Function) {
+                obj.set('this', context.store.alloc(classObj));
+            }
         }
 
         // Store all functions of this class
         let functionAddresses = new Map();
         for (let [name, func] of klass.functions) {
+            func.isClassMethod = true;
             let funcObj = this.evaluate(context, func);
             let address = context.store.alloc(funcObj);
 
@@ -454,9 +464,12 @@ module.exports = class {
         if (!(context.self instanceof Obj)) {
             Report.error(`Serious problem here, evaluateFunction evaluator.js`)
         }
-        // What the 'this' object will be when this function is called
-        obj.set('this', context.store.alloc(context.self));
 
+        if (!func.isClassMethod) {
+            // What the 'this' object will be when this function is called
+            obj.set('this', context.store.alloc(context.self));
+        }
+        
         return obj;
     }
 
@@ -479,7 +492,7 @@ module.exports = class {
             // Prevents the object from being evaluated twice
             call.reference.object = object;
         }
-
+        
         let func = this.evaluate(context, call.reference);
         // Set the object back to the original expression
         call.reference.object = tempObject;
@@ -491,7 +504,12 @@ module.exports = class {
 
         // If there is no calling object, set the object to what it was when the function was defined
         if (object == undefined) {
-            object = context.getValue(func.get('this'));
+            let address = func.get('this');
+            if (address == undefined) {
+                Report.error(`Function requires calling object`, call);
+            }
+
+            object = context.getValue(address);
         }
 
         return this.evaluateFunctionCallImpl(context, object, func, call);
@@ -549,6 +567,9 @@ module.exports = class {
         // Reset the 'self' of the context to what it was before
         context.self = self;
         context.environment.exitScope();
+
+        // If the calling object is stored at a placeholder, remove it
+        context.store.checkPlaceholders(object);
 
         return value;
     }
@@ -640,9 +661,16 @@ module.exports = class {
             bool = this.evaluateFunctionCall(context, call);
         }
 
-        // Create the array
+        // Create the array and store it in a placeholder
         let result = this.evaluateArrayLiteral(context, new ArrayLiteral(array));
-
+        
+        // Why is there a 0 there?
+        // Usually placeholders are created just before a scope is exited, so by default that value is -1
+        // Except for this situation, where no scope is being exited
+        // To make up for that, the placeholder is created one level higher (at 0)
+        // As if it was created in a scope that has now been exited
+        context.store.addPlaceholder(result, 0);
+        
         return result;
     }
 }

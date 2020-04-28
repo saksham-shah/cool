@@ -14,7 +14,7 @@ module.exports = class Report {
     }
 
     static error(message, obj) {
-        if (obj == undefined) {
+        if (obj == undefined || obj.line == -1 || obj.column == -1) {
             obj = Report.latestObj;
         }
 

@@ -194,7 +194,8 @@ module.exports = class extends Class {
             let removedItem = context.getValue(address);
 
             // Stop the value from being deleted when its address is freed
-            context.store.addPlaceholder(removedItem);
+            // To see why the 0 is required, check evaluator.js:evaluateWhile
+            context.store.addPlaceholder(removedItem, 0);
             // Free the address as it is no longer being used
             context.store.free(address);
 

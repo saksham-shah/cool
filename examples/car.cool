@@ -1,7 +1,7 @@
 extract Console
 
 Car = class (yearModel, make) {
-    init this.speed = new Number(0)
+    init this.speed = 0
 
     getYearModel = () => yearModel
     getMake = () => make

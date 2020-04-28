@@ -65,6 +65,7 @@ module.exports = class Obj {
             for (let i = this.otherAddresses.length - 1; i >= 0; i--) {
                 if (this.otherAddresses[i] == address) {
                     this.otherAddresses.splice(i, 1);
+                    //STUFF return this.address;
                 }
             }
         }
@@ -117,6 +118,15 @@ module.exports = class Obj {
             let superAddress = this.get('super');
             if (superAddress != undefined) {
                addresses.push(superAddress);
+            }
+        }
+
+        // Adds references related to functions
+        if (this.type == Types.Function) {
+            // The 'this' object of the function
+            let thisAddress = this.get('this');
+            if (thisAddress != undefined) {
+                addresses.push(thisAddress);
             }
         }
 
