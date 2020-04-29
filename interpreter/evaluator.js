@@ -150,6 +150,7 @@ module.exports = class {
 
         // I always forget the context parameter of this function
         if (!(expression instanceof Expression)) {
+            console.log(expression);
             throw new Error("You've probably forgotten a context somewhere.");
         }
 
@@ -284,6 +285,11 @@ module.exports = class {
     static evaluateBlock(context, block) {
         context.environment.enterScope();
 
+        // Goes through all definitions first
+        for (let definition of block.definitions) {
+            this.define(context, definition);
+        }
+
         let latest = this.create(context, Types.Undefined);
 
         // Returns the result of the last expression
@@ -378,9 +384,11 @@ module.exports = class {
     // RETURNS: Obj
     static evaluateClassCall(context, call) {
         // Get the class' address and the actual Class object
-        let classAddress = this.getAddress(context, call.reference);
-        let classObj = context.getValue(classAddress);
-        context.store.pushTemp(classObj);
+        let classObj = this.evaluate(context, call.reference);
+        let classAddress = context.store.alloc(classObj);
+        //let classAddress = this.getAddress(context, call.reference);
+        //let classObj = context.getValue(classAddress);
+        //context.store.pushTemp(classObj);
 
         if (classObj.type != Types.Class) {
             console.log(call.reference);
@@ -401,7 +409,7 @@ module.exports = class {
         context.environment.enterScope(classObj.get('scope'));
 
         let klass = classObj.get('class');
-        context.store.popTemp();
+        //context.store.popTemp();
 
         // Add each argument to the scope by setting it to the name of the corresponding parameter
         for (let i = 0; i < klass.params.length; i++) {
@@ -441,6 +449,9 @@ module.exports = class {
 
             // Get the super object and set its typeAddress to this class
             obj = this.evaluate(context, superCall);
+
+            // Free the previous typeAddress before replacing it
+            context.store.free(obj.typeAddress);
             obj.typeAddress = classAddress;
         } else {
             // Otherwise just create a new object of this class
@@ -511,6 +522,7 @@ module.exports = class {
         // By default, functions are acting on the current 'this' object
         // let object = context.self;
         let object;
+        let tempPushed = false;
         let tempObject = call.reference.object;
 
         // If there is an actual object that the function is acting on, set it as that
@@ -519,6 +531,11 @@ module.exports = class {
 
             // Prevents the object from being evaluated twice
             call.reference.object = object;
+
+            context.store.pushTemp(object);
+
+            // Makes sure the pushTemp above is followed by a popTemp in evaluateFunctionCallImpl
+            tempPushed = true;
         }
 
         let func = this.evaluate(context, call.reference);
@@ -540,13 +557,13 @@ module.exports = class {
             object = context.getValue(address);
         }
 
-        return this.evaluateFunctionCallImpl(context, object, func, call);
+        return this.evaluateFunctionCallImpl(context, object, func, call, tempPushed);
     }
 
     // The above function deals with choosing the correct function to use
     // This one actually calls the function and evaluates the arguments
     // RETURNS: Result of the function call
-    static evaluateFunctionCallImpl(context, object, func, call) {
+    static evaluateFunctionCallImpl(context, object, func, call, tempPushed) {
         // Evaluate all of the arguments passed into the function
         let argObjects = [];
         let temps = [];
@@ -594,6 +611,11 @@ module.exports = class {
         // By default, functions return Undefined
         if (value == undefined) {
             value = this.create(context, Types.Undefined);
+        }
+
+        // Explained in evaluateFunctionCall above
+        if (tempPushed) {
+            context.store.popTemp();
         }
 
         // Stops the value from being deleted when the scope is exited
@@ -706,5 +728,52 @@ module.exports = class {
         context.store.addPlaceholder(result);
         
         return result;
+    }
+
+    // Definitions simply set values in the context and don't return anything
+    // RETURNS: Nothing
+    static define(context, definition) {
+        if (definition.isExtract()) {
+            this.defineExtract(context, definition);
+
+        } else if (definition.isFunction()) {
+            this.defineFunction(context, definition);
+        }
+    }
+
+    static defineExtract(context, extract) {
+        let klass = this.evaluate(context, extract.klass);
+
+        if (klass.type != Types.Class) {
+            Report.error(`Extract must refer to a class in the current context`, extract);
+        }
+
+        // Go through all properties of the class and add them to the current scope
+        let keyValuePairs = klass.getKeysOrValues();
+        for (let pair of keyValuePairs) {
+            let value = context.getValue(pair[1]);
+
+            // Assign each value to its key name
+            let assign = new Assignment(new Reference(pair[0]), '=', value, true);
+            this.evaluateAssignment(context, assign);
+        }
+    }
+
+    static defineFunction(context, func) {
+        let obj = this.create(context, Types.Function);
+        obj.set('function', func);
+        obj.set('name', func.name);
+        
+        // The scope in which this function was defined
+        obj.set('scope', context.environment.getScopeIndex());
+
+        if (!func.isClassMethod) {
+            // What the 'this' object will be when this function is called
+            obj.set('this', context.store.alloc(context.self));
+        }
+        
+        // Assign the function to its name
+        let assign = new Assignment(new Reference(func.name), '=', obj, true);
+        this.evaluateAssignment(context, assign);
     }
 }

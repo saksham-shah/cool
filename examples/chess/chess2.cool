@@ -452,7 +452,7 @@ Console.print(whitePieces[11].getMoves())
 Console.print("do turn")
 
 doTurn(0)
-*/
+*//*
 whoseTurn = 0
 while yes {
     doTurn(whoseTurn)

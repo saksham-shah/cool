@@ -93,6 +93,11 @@ module.exports = class Obj {
     // RETURNS: Array of addresses
     getReferences() {
         let addresses = [];
+        // Adds the address of the object's class
+        if (this.type == undefined) {
+            addresses.push(this.typeAddress);
+        }
+
         // Adds all object properties
         for (let address of this.properties.values()) {
             addresses.push(address);
@@ -133,16 +138,29 @@ module.exports = class Obj {
         return addresses;
     }
 
+    // Equivalent of JS functions Map.keys(), Map.values() and Map.entries() for Cool objects
+    // RETURNS: Array of either the keys, values or both (depending on the mode parameter)
+    getKeysOrValues(mode) {
+        let returnVal = []
+        for (let [propName, value] of this.properties) {
+            if (mode == 'key') {
+                returnVal.push(propName);
+                
+            } else if (mode == 'value') {
+                returnVal.push(value);
+
+            } else {
+                returnVal.push([propName, value]);
+            }
+        }
+        return returnVal;
+    }
+
     // Checks if this object is a literal - UNUSED
     // RETURNS: Boolean
     isLiteral() {
         if (this.type == undefined) return false;
 
         return this.type == Types.Number || this.type == Types.Boolean || this.type == Types.String || this.type == Types.Undefined;
-    }
-
-    // RETURNS: The function address if it is found, otherwise undefined
-    findFunction(functionName) {
-
     }
 }

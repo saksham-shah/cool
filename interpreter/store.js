@@ -22,7 +22,8 @@ module.exports = class {
         let address;
         // If there are free spaces in the array, fill them first
         if (this.freeAddresses.length > 0) {
-            address = this.freeAddresses.pop();
+            // address = this.freeAddresses.pop();
+            address = this.freeAddresses.splice(0, 1)[0];
 
             this.locations[address] = value;
         } else {

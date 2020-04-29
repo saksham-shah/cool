@@ -221,6 +221,45 @@ module.exports = class extends Class {
             return Evaluator.create(context, Types.Undefined);
         })));
 
+        // Joins each item of the array with a delimiter character
+        this.functions.set('join', new Func('join', ['char'],  new NativeExpression(context => {
+            let char = context.getValue(context.environment.get('char'));
+            // Get the character from the 'char' object
+            if (char.type == Types.Undefined) {
+                // Empty string by default
+                char = '';
+
+            } else {
+                // If char isn't already a string, turn it into one using toString
+                if (char.type != Types.String) {
+                    let call = new FunctionCall(new Reference('toString', new Reference('char')));
+                    char = Evaluator.evaluateFunctionCall(context, call);
+                }
+
+                char = char.get('value');
+            }
+
+            let addresses = context.self.get('value');
+            
+            let output = '';
+            // Convert each item to a string and join it with the character
+            for (let i = 0; i < addresses.length; i++) {
+                if (i > 0) {
+                    output += char;
+                }
+
+                // Calling 'toString' on each item of this array
+                let call = new FunctionCall(new Reference('toString', new Reference(new NumberLiteral(i), new This())));
+                let str = Evaluator.evaluate(context, call);
+
+                output += str.get('value');
+            }
+
+            let str = Evaluator.create(context, Types.String);
+            str.set('value', output);
+            return str;
+        })));
+
         // The length of the array
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {
             let result = Evaluator.create(context, Types.Number);

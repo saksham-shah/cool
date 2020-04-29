@@ -36,9 +36,9 @@ let codeText;
 
 let classes = [];
 
-// const filename = 'code.cool';
-// const filename = 'examples/collatz.cool';
-const filename = 'examples/chess/chess2.cool';
+const filename = 'code.cool';
+// const filename = 'examples/fibonacci.cool';
+// const filename = 'examples/chess/chess2.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -84,13 +84,14 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     console.log(`Standard library size: ${context.store.locations.length - context.store.freeAddresses.length}`)
 
+    // console.log(program.expressions[0].reference);
     //console.log(context.store.locations)
 
     let result = Evaluator.evaluate(context, program);
 
     // result = Evaluator.evaluate(context, new Reference('+', ))
 
-    // console.log(context.store.locations)
+    // console.log(context.store.locations.slice(50))
 
     //console.log(result);
 

@@ -1,3 +1,4 @@
+const ArrayLiteral = require('../../ast/array');
 const Class = require('../../ast/class');
 const Func = require('../../ast/func');
 const FunctionCall = require('../../ast/functioncall');
@@ -215,6 +216,40 @@ module.exports = class extends Class {
             let result = Evaluator.create(context, Types.Number);
             result.set('value', context.self.get('value').length);
             return result;
+        })));
+
+        // Splits a string into an array of strings
+        this.functions.set('split', new Func('split', ['char'], new NativeExpression(context => {
+            let char = context.getValue(context.environment.get('char'));
+            // Get the character from the 'char' object
+            if (char.type == Types.Undefined) {
+                // Empty string by default
+                char = '';
+
+            } else {
+                // If char isn't already a string, turn it into one using toString
+                if (char.type != Types.String) {
+                    let call = new FunctionCall(new Reference('toString', new Reference('char')));
+                    char = Evaluator.evaluateFunctionCall(context, call);
+                }
+
+                char = char.get('value');
+            }
+
+            // Split the string into an array using the given character
+            let strArray = context.self.get('value').split(char);
+
+            // Create an array of String objects
+            let array = [];
+            for (let str of strArray) {
+                let obj = Evaluator.create(context, Types.String);
+                obj.set('value', str);
+                array.push(obj);
+            }
+
+            // Create and return the Array object
+            array = new ArrayLiteral(array);
+            return Evaluator.evaluateArrayLiteral(context, array);
         })));
 
         // to_ functions

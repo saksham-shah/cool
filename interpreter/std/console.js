@@ -24,6 +24,19 @@ module.exports = class extends Class {
 
         // Outputs to the console
         this.statics.set('print', new Func('print', [], new NativeExpression(context => {
+            // Create a string of the space (" ") character
+            let space = Evaluator.create(context, Types.String);
+            space.set('value', ' ');
+
+            // Call the join method of arguments with the space character
+            // arguments.join(" ")
+            let call = new FunctionCall(new Reference('join', new Reference('arguments')), [space])
+            let output = Evaluator.evaluateFunctionCall(context, call);
+
+            // Print to the console
+            console.log(`OUTPUT: ${output.get('value')}`);
+            
+            /*
             let output = '';
             let addresses = context.getValue(context.environment.get('arguments')).get('value');
 
@@ -47,7 +60,7 @@ module.exports = class extends Class {
 
             }
 
-            console.log(`OUTPUT: ${output}`);
+            console.log(`OUTPUT: ${output}`);*/
         })));
 
         // Input from the console
