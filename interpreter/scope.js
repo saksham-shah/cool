@@ -10,12 +10,12 @@ module.exports = class {
 
     // Finds where an identifier is stored
     // RETURNS: Memory address of the identifier
-    get(identifier) {
+    get(identifier, forceNewScope = false) {
         let address = this.identifiers.get(identifier);
 
         // Recursively searches the parent scopes
         if (address == undefined) {
-            if (this.parent != null) {
+            if (this.parent != null && !forceNewScope) {
                 address = this.parent.get(identifier);
             }
         }

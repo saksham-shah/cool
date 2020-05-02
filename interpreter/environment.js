@@ -49,8 +49,8 @@ module.exports = class {
 
     // Finds where an identifier is stored
     // RETURNS: Memory address of the identifier
-    get(identifier) {
-        return this.scope.get(identifier);
+    get(identifier, forceNewScope = false) {
+        return this.scope.get(identifier, forceNewScope);
     }
 
     // Stores the memory address that the identifier refers to

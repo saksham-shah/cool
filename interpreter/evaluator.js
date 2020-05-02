@@ -25,6 +25,7 @@ module.exports = class {
 
         // If the reference is already an object, just return the object's address
         if (reference instanceof Obj) {
+            throw new Error();
             address = reference.address;
             if (address != undefined) return address;
 
@@ -111,7 +112,7 @@ module.exports = class {
 
         } else {
             // Look for the identifier in the current scope
-            address = context.environment.get(reference.identifier);
+            address = context.environment.get(reference.identifier, forceNewScope);
             if (address != undefined) return address;
 
             // Look for the property in the current 'this' object
@@ -137,6 +138,7 @@ module.exports = class {
         let obj = new Obj(address);
 
         obj.type = type;
+        obj.internal = true;
 
         return obj;
     }
@@ -456,6 +458,10 @@ module.exports = class {
         } else {
             // Otherwise just create a new object of this class
             obj = new Obj(classAddress);
+        }
+
+        if (klass.name != undefined) {
+            obj.type = klass.name;
         }
 
         context.store.pushTemp(obj);

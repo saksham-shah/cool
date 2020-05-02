@@ -6,6 +6,9 @@ module.exports = class Obj {
         this.typeAddress = typeAddress;
         // The actual name of the class
         this.type = undefined;
+
+        // Whether they were created in JS code (rather than Cool code)
+        this.internal = false;
         
         // The memory address(es) where this object is stored
         this.address = address;
@@ -94,7 +97,8 @@ module.exports = class Obj {
     getReferences() {
         let addresses = [];
         // Adds the address of the object's class
-        if (this.type == undefined) {
+        if (!this.internal) {
+        // if (this.type == undefined) {
             addresses.push(this.typeAddress);
         }
 
