@@ -36,6 +36,8 @@ module.exports = class {
 
         if (reference.object != undefined && !forceNewScope) {
             let obj = this.evaluate(context, reference.object);
+            // Stores the object so it doesn't get evaluated twice (in setAddress)
+            reference.object = obj;
             context.store.pushTemp(obj);
 
             // Square bracket properties - ["this stuff"]
@@ -43,6 +45,8 @@ module.exports = class {
             if (propName instanceof Expression) {
                 // Evaluate the expression in the square brackets
                 let result = this.evaluate(context, reference.identifier);
+                // Same as above
+                reference.identifier = result;
 
                 // If it isn't already a string or number, convert it to a string
                 if (result.type != Types.String && result.type != Types.Number) {
@@ -123,6 +127,90 @@ module.exports = class {
 
             // Create a new variable in the current scope
             address = context.store.alloc();
+            context.environment.set(reference.identifier, address, forceNewScope);
+            return address;
+        }
+    }
+
+    // Similar to getAddress (definitely room for improvement, lots of duplicate code)
+    // Finds a reference and changes the address it points to
+    // RETURNS: Nothing
+    static setAddress(context, reference, address, forceNewScope = false) {
+        let temp;
+
+        if (reference.object != undefined && !forceNewScope) {
+            let obj = reference.object;
+            context.store.pushTemp(obj);
+
+            // Square bracket properties - ["this stuff"]
+            let propName = reference.identifier;
+            if (propName instanceof Obj) {
+                // Evaluate the expression in the square brackets
+                let result = propName;
+
+                // If it isn't already a string or number, convert it to a string
+                if (result.type != Types.String && result.type != Types.Number) {
+                    let call = new FunctionCall(new Reference('toString', result));
+                    result = this.evaluateFunctionCall(context, call);
+                }
+
+                // If it is a number
+                // Check if it is an array and access the corresponding array index
+                if (result.type == Types.Number) {
+                    if (obj.type != Types.Array) {
+                        Report.error(`Cannot access numeric property of non-Array object`, reference.identifier);
+                    }
+                    
+                    // Array indexing
+                    let index = result.get('value');
+                    let arr = obj.get('value');
+                    // Allows negative indexing
+                    if (index < 0) index += arr.length;
+
+                    if (index < 0 || index >= arr.length) {
+                        Report.error(`Array index [${index}] out of range (Array length: ${arr.length})`, reference.identifier);
+                    }
+
+                    context.store.popTemp();
+                    arr[index] = address;
+                    return;
+                }
+
+                // Otherwise it is a string and the property name can be retrieved easily
+                propName = result.get('value');
+            }
+
+            // Look for the property on the object
+            temp = obj.getProperty(propName);
+            if (temp != undefined) {
+                obj.setProperty(propName, address);
+                context.store.popTemp();
+                return;
+            }
+
+            // Create a new property of the object
+            obj.setProperty(propName, address);
+            context.store.popTemp();
+            return;
+
+        } else {
+            // Look for the identifier in the current scope
+            temp = context.environment.get(reference.identifier, forceNewScope);
+            if (temp != undefined) {
+                context.environment.set(reference.identifier, address, forceNewScope);
+                return;
+            }
+
+            // Look for the property in the current 'this' object
+            if (context.self != null && !forceNewScope) {
+                temp = context.self.getProperty(reference.identifier);
+                if (temp != undefined) {
+                    context.self.setProperty(reference.identifier, address)
+                    return;
+                }
+            }
+
+            // Create a new variable in the current scope
             context.environment.set(reference.identifier, address, forceNewScope);
             return address;
         }
@@ -267,9 +355,21 @@ module.exports = class {
         context.store.pushTemp(value);
 
         // Store the value
+        let refObject = assignment.reference.object;
+        let refIdentifier = assignment.reference.identifier;
+        
+        // Get the current address of the reference and store the object there
         let address = this.getAddress(context, assignment.reference, assignment.forceNewScope);
+        let newAddress = context.store.write(address, value);
 
-        context.store.write(address, value);
+        // If the address has changed, store the new address
+        if (address != newAddress) {
+            this.setAddress(context, assignment.reference, newAddress, assignment.forceNewScope);
+        }
+
+        assignment.reference.object = refObject;
+        assignment.reference.identifier = refIdentifier;
+
         context.store.popTemp();
 
         return value;
@@ -673,7 +773,13 @@ module.exports = class {
 
     // RETURNS: Obj that the reference points to
     static evaluateReference(context, reference) {
+        let refObject = reference.object;
+        let refIdentifier = reference.identifier;
+
         let address = this.getAddress(context, reference);
+
+        reference.object = refObject;
+        reference.identifier = refIdentifier;
 
         return context.getValue(address);
     }

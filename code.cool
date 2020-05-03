@@ -1,12 +1,5 @@
-test = (a, b, c) => {
+x = new Number(9)
 
-    p = () => {}
-    
-    p(3, 2, 1)
+x = "nothing"
 
-    //Console.print(1+2, a)
-
-    Console.print(arguments)
-}
-
-test(1, 2, 3)
+Console.print(2+2)

@@ -25,10 +25,10 @@ module.exports = class {
     getValue(address) {
         let value = this.store.read(address);
 
-        // If the value is undefined, store an Undefined object there
+        // If the value is undefined, return an Undefined object
         if (value == undefined) {
             value = Evaluator.create(this, Types.Undefined);
-            this.store.write(address, value);
+            // this.store.write(address, value);
         }
 
         return value;

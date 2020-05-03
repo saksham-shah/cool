@@ -1,5 +1,4 @@
 const fs = require('fs');
-const Lexer = require('./lexer/lexer');
 const Parser = require('./parser/parser');
 /*
 const Evaluator = require('./interpreter/evaluator');
@@ -30,15 +29,13 @@ const StringClass = require('./interpreter/std/string');
 const UndefinedClass = require('./interpreter/std/undefined');
 const ConsoleClass = require('./interpreter/std/console');
 
-const Reference = require('./ast/reference');
-
 let codeText;
 
 let classes = [];
 
-const filename = 'code.cool';
+// const filename = 'code.cool';
 // const filename = 'examples/division.cool';
-// const filename = 'examples/chess/chess2.cool';
+const filename = 'examples/chess/chess.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {
@@ -91,7 +88,9 @@ fs.readFile(`./${filename}`, 'utf8', (err, data) => {
 
     // result = Evaluator.evaluate(context, new Reference('+', ))
 
-    // console.log(context.store.locations.slice(50))
+    // console.log(context.store.locations)
+
+    // console.log(context.store.references)
 
     //console.log(result);
 

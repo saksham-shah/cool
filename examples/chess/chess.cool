@@ -11,8 +11,8 @@ while board < 8 {
     board += row
 }
 
-alphabet = "abcdefgh"
-numbers = "0123456789"
+alphabet = ["a", "b", "c", "d", "e", "f", "g", "h"]//"abcdefgh"
+numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]//"0123456789"
 
 letters = new Object()
 letters.king = "K"
@@ -448,7 +448,7 @@ function doTurn(team) {
     chosenMove = possibleMoves[chosenIndex][chosenMoveIndex]
     possiblePieces[chosenIndex].move(chosenMove[0], chosenMove[1])
 }
-
+/*
 whoseTurn = 0
 while yes {
     doTurn(whoseTurn)
