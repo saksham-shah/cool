@@ -12,7 +12,6 @@ module.exports = class Obj {
         
         // The memory address(es) where this object is stored
         this.address = address;
-        // this.otherAddresses = [];
 
         // The properties and methods of this object
         this.properties = new Map();
@@ -41,56 +40,6 @@ module.exports = class Obj {
         this.devProperties.set(propertyName, value);
     }
 
-    // // Adds an address where this object is stored
-    // // RETURNS: Nothing
-    // addAddress(address) {
-    //     if (this.address == undefined) {
-    //         this.address = address;
-    //     } else {
-    //         // If a primary address has already been set, add this new address to an array
-    //         this.otherAddresses.push(address);
-    //     }
-    // }
-
-    // // Removes an address where this object is no longer stored
-    // // RETURNS: The new primary address
-    // removeAddress(address) {
-    //     if (this.address == address) {
-    //         // A new primary address is chosen from the array
-    //         if (this.otherAddresses.length > 0) {
-    //             this.address = this.otherAddresses.splice(0, 1)[0];
-    //         } else {
-    //             // This means the object is not stored anywhere and should be deleted entirely
-    //             this.address = undefined;
-    //         }
-    //     } else {
-    //         // Look for (and remove) the address in the array
-    //         for (let i = this.otherAddresses.length - 1; i >= 0; i--) {
-    //             if (this.otherAddresses[i] == address) {
-    //                 this.otherAddresses.splice(i, 1);
-    //                 return this.address;
-    //             }
-    //         }
-    //     }
-
-    //     return this.address;
-    // }
-
-    // // Checks whether this object is stored at a particular address
-    // // RETURNS: Boolean
-    // hasAddress(address) {
-    //     if (this.address == address) return true;
-
-    //     // Look for the address in the array
-    //     for (let i = 0; i < this.otherAddresses.length; i++) {
-    //         if (this.otherAddresses[i] == address) {
-    //             return true;
-    //         }
-    //     }
-
-    //     return false;
-    // }
-
     // Gets all the addresses stored in this object
     // e.g. all its properties (and items if it is an array)
     // RETURNS: Array of addresses
@@ -98,7 +47,6 @@ module.exports = class Obj {
         let addresses = [];
         // Adds the address of the object's class
         if (!this.internal) {
-        // if (this.type == undefined) {
             addresses.push(this.typeAddress);
         }
 

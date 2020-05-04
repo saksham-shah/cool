@@ -35,32 +35,6 @@ module.exports = class extends Class {
 
             // Print to the console
             console.log(`OUTPUT: ${output.get('value')}`);
-            
-            /*
-            let output = '';
-            let addresses = context.getValue(context.environment.get('arguments')).get('value');
-
-            // Convert each item to a string and join it with spaces
-            for (let i = 0; i < addresses.length; i++) {
-                if (i > 0) {
-                    output += ' '
-                }
-
-                // Calling 'toString' on each item of the arguments array
-                let call = new FunctionCall(new Reference('toString', new Reference(new NumberLiteral(i), new Reference('arguments'))));
-                
-                let str = Evaluator.evaluate(context, call);
-
-                output += str.get('value');
-
-                // Debugging
-                //call = new Reference(new NumberLiteral(i), new Reference('arguments'));
-                //let obj = Evaluator.evaluate(context, call);
-                //console.log(obj);
-
-            }
-
-            console.log(`OUTPUT: ${output}`);*/
         })));
 
         // Input from the console

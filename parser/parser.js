@@ -204,12 +204,6 @@ module.exports = class {
         return value;
     }
 
-    // UNUSED
-    // RETURNS: Expression
-    parseBooleanExpression() {
-        return this.parseBinaryExpression(this.booleanIsNext, this.parseOr);
-    }
-
     // Currently the lowest priority operation
     // RETURNS: Expression
     parseOr() {

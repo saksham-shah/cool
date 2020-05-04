@@ -158,8 +158,6 @@ module.exports = class {
     }
 
     recogniseKeyword(value) {
-        // let keywords = Object.keys(TokenType).filter(key => TokenType[key].charAt(0).toLowerCase() === value.charAt(0));
-
         let column = this.column;
         this.column += value.length;
 

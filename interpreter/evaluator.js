@@ -488,9 +488,6 @@ module.exports = class {
         // Get the class' address and the actual Class object
         let classObj = this.evaluate(context, call.reference);
         let classAddress = context.store.alloc(classObj);
-        //let classAddress = this.getAddress(context, call.reference);
-        //let classObj = context.getValue(classAddress);
-        //context.store.pushTemp(classObj);
 
         if (classObj.type != Types.Class) {
             console.log(call.reference);
@@ -511,7 +508,6 @@ module.exports = class {
         context.environment.enterScope(classObj.get('scope'));
 
         let klass = classObj.get('class');
-        //context.store.popTemp();
 
         // Add each argument to the scope by setting it to the name of the corresponding parameter
         for (let i = 0; i < klass.params.length; i++) {

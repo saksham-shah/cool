@@ -40,39 +40,4 @@ module.exports = class {
         this.self = Evaluator.create(this, Types.Object);
         this.store.alloc(this.self);
     }
-
-    /*
-    // Used to get native classes like Number, String etc
-    // RETURNS: Memory address of that class
-    getClass(name) {
-        return this.classes.get(name);
-    }
-
-    // Used to set the same classes as mentioned above
-    // RETURNS: Nothing
-    setClass(name, address) {
-        this.classes.set(name, address);
-    }
-
-*/
-
-
-
-
-
-/*
-    getClassReference(address) {
-        let klass = this.classes.get(address);
-
-        if (klass == undefined) {
-            throw new Error(`Undefined class at address ${address} - context.js`);
-        }
-
-        return klass;
-    }
-
-    setClassReference(address, reference) {
-        this.classes.set(address, reference);
-    }
-*/
 }
