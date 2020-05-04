@@ -1,9 +1,8 @@
-class Numbers {
-    static one = 1
-    static two = 2
-    static three = 3
+//[1, 2]
+y = 86
+obj = {
+    x: 1,
+    y
 }
 
-extract Numbers
-
-Console.print(one + two + Numbers.three)
+Console.print(obj.y)

@@ -13,6 +13,7 @@ const Func = require('../ast/func');
 const FunctionCall = require('../ast/functioncall');
 const IfElse = require('../ast/ifelse');
 const NumberLiteral = require('../ast/number');
+const ObjectLiteral = require('../ast/obj');
 const Reference = require('../ast/reference');
 const StringLiteral = require('../ast/string');
 const This = require('../ast/this');
@@ -62,6 +63,9 @@ module.exports = class {
 
             this.currentToken = this.lexer.nextToken();
 
+        } else if (this.isNext(TokenType.OpenBrace)) {
+            value = this.parseObject();
+
         } else if (this.isNext(TokenType.This)) {
             value = new This();
 
@@ -92,9 +96,6 @@ module.exports = class {
 
         } else if (this.isNext(TokenType.OpenSquare)) {
             value = this.parseArray();
-
-        // } else if (this.isNext(TokenType.OpenBrace)) {
-        //     value = this.parseBlock();
 
         } else if (this.isNext(TokenType.Identifier)) {
             let nextToken = this.lexer.lookahead();
@@ -580,6 +581,34 @@ module.exports = class {
         }
 
         return new IfElse(condition, thenBlock, elseBlock);
+    }
+
+    // RETURNS: Object Literal Expression
+    parseObject() {
+        this.expect(TokenType.OpenBrace);
+
+        let properties = new Map;
+
+        // Similar to parseArray and parseParameters
+        while(!this.isNext(TokenType.CloseBrace)) {
+            let propName = this.expect(TokenType.Identifier).value;
+
+            if (this.isNext(TokenType.Colon)) {
+                this.expect(TokenType.Colon);
+
+                properties.set(propName, this.parseExpression());
+            } else {
+                properties.set(propName, new Reference(propName));
+            }
+            
+            if (!this.isNext(TokenType.CloseBrace)) {
+                this.expect(TokenType.Comma);
+            }
+        }
+
+        this.expect(TokenType.CloseBrace);
+
+        return new ObjectLiteral(properties);
     }
 
     // RETURNS: While Expression

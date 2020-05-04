@@ -100,8 +100,8 @@ module.exports = class {
             return this.recogniseBracket(char);
         }
 
-        if (CharUtils.isDot(char) || CharUtils.isComma(char)) {
-            return this.recogniseDotOrComma(char);
+        if (CharUtils.isDot(char) || CharUtils.isComma(char) || CharUtils.isColon(char)) {
+            return this.recogniseDelimiter(char);
         }
 
         // if (CharUtils.isNewline(char)) {
@@ -353,7 +353,7 @@ module.exports = class {
         }
     }
 
-    recogniseDotOrComma(char) {
+    recogniseDelimiter(char) {
         this.counter ++;
         this.column++;
 
@@ -363,6 +363,10 @@ module.exports = class {
 
         if (char === ',') {
             return new Token(TokenType.Comma, ',', this.line, this.column - 1, this.file);
+        }
+
+        if (char === ':') {
+            return new Token(TokenType.Colon, ':', this.line, this.column - 1, this.file);
         }
     }
 

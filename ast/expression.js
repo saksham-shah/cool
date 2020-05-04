@@ -57,6 +57,10 @@ module.exports = class extends AstBase {
         return false;
     }
 
+    isObjectLiteral() {
+        return false;
+    }
+
     isReference() {
         return false;
     }

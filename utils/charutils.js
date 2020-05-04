@@ -24,6 +24,10 @@ module.exports = class {
         return char === ',';
     }
 
+    static isColon(char) {
+        return char === ':';
+    }
+
     static isOperator(char) {
         return char === '=' || char === '+' || char === '-' || char === '*' || char === '/' || char === '%' || char === '!' || char === '&' || char === '|' || char === '>' || char === '<';
     }

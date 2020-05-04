@@ -1,12 +1,12 @@
 const Expression = require('./expression');
 
 module.exports = class extends Expression {
-    constructor(items = []) {
+    constructor(properties = new Map()) {
         super();
-        this.items = items;
+        this.properties = properties;
     }
 
-    isArrayLiteral() {
+    isObjectLiteral() {
         return true;
     }
 }

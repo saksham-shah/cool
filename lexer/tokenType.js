@@ -48,6 +48,7 @@ module.exports = {
     Dot: '.',
     Comma: ',',
     Arrow: '=>',
+    Colon: ':',
 
     // Keywords
     // Var: 'var',

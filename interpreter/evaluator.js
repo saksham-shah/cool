@@ -286,12 +286,16 @@ module.exports = class {
             return this.evaluateIfElse(context, expression);
         }
 
+        if (expression.isNativeExpression()) {
+            return this.evaluateNativeExpression(context, expression);
+        }
+
         if (expression.isNumberLiteral()) {
             return this.evaluateNumberLiteral(context, expression);
         }
 
-        if (expression.isNativeExpression()) {
-            return this.evaluateNativeExpression(context, expression);
+        if (expression.isObjectLiteral()) {
+            return this.evaluateObjectLiteral(context, expression);
         }
 
         if (expression.isReference()) {
@@ -760,6 +764,13 @@ module.exports = class {
         return result;
     }
 
+    // A native expression is an expression written in JavaScript rather than Cool
+    // Used for built-in data types and functions
+    // RETURNS: Result of the native expression
+    static evaluateNativeExpression(context, expression) {
+        return expression.func(context);
+    }
+
     // RETURNS: Number Obj
     static evaluateNumberLiteral(context, number) {
         let obj = this.create(context, Types.Number);
@@ -767,11 +778,21 @@ module.exports = class {
         return obj;
     }
 
-    // A native expression is an expression written in JavaScript rather than Cool
-    // Used for built-in data types and functions
-    // RETURNS: Result of the native expression
-    static evaluateNativeExpression(context, expression) {
-        return expression.func(context);
+    // Returns: Obj
+    static evaluateObjectLiteral(context, objExpr) {
+        let obj = this.create(context, Types.Object);
+        context.store.pushTemp(obj);
+
+        // Assign each defined property to the object
+        for (let [propName, expression] of objExpr.properties) {
+            let assign = new Assignment(new Reference(propName, obj), '=', expression);
+            this.evaluateAssignment(context, assign);
+        }
+
+        context.store.addPlaceholder(obj);
+        context.store.popTemp();
+
+        return obj;
     }
 
     // RETURNS: Obj that the reference points to
