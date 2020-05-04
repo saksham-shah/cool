@@ -471,7 +471,7 @@ module.exports = class {
 
         // If the class has a name, store it as a reference
         if (klass.name != undefined) {
-            let assign = new Assignment(new Reference(klass.name), '=', classObj);
+            let assign = new Assignment(new Reference(klass.name), '=', classObj, true);
             this.evaluateAssignment(context, assign);
         }
 
@@ -610,6 +610,12 @@ module.exports = class {
         if (!func.isClassMethod) {
             // What the 'this' object will be when this function is called
             obj.set('this', context.store.alloc(context.self));
+
+            // If the class has a name, store it as a reference
+            if (func.name != undefined) {
+                let assign = new Assignment(new Reference(func.name), '=', obj, true);
+                this.evaluateAssignment(context, assign);
+            }
         }
         
         return obj;
@@ -842,12 +848,22 @@ module.exports = class {
     // Definitions simply set values in the context and don't return anything
     // RETURNS: Nothing
     static define(context, definition) {
-        if (definition.isExtract()) {
+        if (definition.isClass()) {
+            this.defineClass(context, definition);
+
+        } else if (definition.isExtract()) {
             this.defineExtract(context, definition);
 
         } else if (definition.isFunction()) {
             this.defineFunction(context, definition);
         }
+    }
+
+    static defineClass(context, klass) {
+        // Get the actual class expression from the definition
+        klass = klass.classExpr;
+
+        this.evaluate(context, klass);
     }
 
     static defineExtract(context, extract) {
@@ -869,7 +885,12 @@ module.exports = class {
     }
 
     static defineFunction(context, func) {
-        let obj = this.create(context, Types.Function);
+        // Get the actual function expression from the definition
+        func = func.funcExpr;
+
+        this.evaluate(context, func);
+
+        /*let obj = this.create(context, Types.Function);
         obj.set('function', func);
         obj.set('name', func.name);
         
@@ -883,6 +904,6 @@ module.exports = class {
         
         // Assign the function to its name
         let assign = new Assignment(new Reference(func.name), '=', obj, true);
-        this.evaluateAssignment(context, assign);
+        this.evaluateAssignment(context, assign);*/
     }
 }

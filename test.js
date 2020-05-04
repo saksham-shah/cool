@@ -8,9 +8,10 @@ function parseString(text) {
     });
 }
 
+console.log(-(true ? 2 : 3))
 
-const readline = require('readline-sync');
+// const readline = require('readline-sync');
 
-res = readline.question("INPUT: ");
+// res = readline.question("INPUT: ");
 
-console.log(res == "");
+// console.log(res == "");

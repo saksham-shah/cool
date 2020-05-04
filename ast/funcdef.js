@@ -1,14 +1,16 @@
 const Definition = require('./definition');
 
 module.exports = class extends Definition {
-    constructor(name, params, body) {
+    constructor(funcExpr) {
         super();
-        this.name = name;
-        this.params = params;
-        this.body = body;
+
+        this.funcExpr = funcExpr;
+        // this.name = name;
+        // this.params = params;
+        // this.body = body;
 
         // Whether the function is a method of a class
-        this.isClassMethod = false;
+        // this.isClassMethod = false;
     }
 
     isFunction() {
