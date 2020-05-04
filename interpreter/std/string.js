@@ -4,14 +4,14 @@ const Func = require('../../ast/func');
 const FunctionCall = require('../../ast/functioncall');
 const NativeExpression = require('../../ast/nativeexpression');
 const Reference = require('../../ast/reference');
-const This = require('../../ast/this');
 
 const Evaluator = require('../../interpreter/evaluator');
 
-const Obj = require('../object');
 const Types = require('../../types/types');
 
 const TokenType = require('../../lexer/tokenType');
+
+const err = require('../../utils/report').error;
 
 module.exports = class extends Class {
     constructor() {
@@ -155,34 +155,37 @@ module.exports = class extends Class {
         })));
 
         // Functions for each operator, similar to the Number class
-        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
-            let result;
+            let result = Evaluator.create(context, Types.String);;
 
             // Different uses of '+' based on data type
             switch (right.type) {
-                case Types.Number:
-                    result = Evaluator.create(context, Types.String);
-                    result.set('value', left.get('value') + right.get('value'));
-                    break;
+                // case Types.Number:
+                //     result = Evaluator.create(context, Types.String);
+                //     result.set('value', left.get('value') + right.get('value'));
+                //     break;
                 case Types.String:
-                    result = Evaluator.create(context, Types.String);
+                    // result = Evaluator.create(context, Types.String);
                     result.set('value', left.get('value') + right.get('value'));
                     break;
                 case Types.Undefined:
-                    result = Evaluator.create(context, Types.String);
+                    // result = Evaluator.create(context, Types.String);
                     result.set('value', left.get('value'));
                     break;
                 default:
-                    err(`Invalid use of operator '${TokenType.Plus}'`);
+                    let toStringCall = new FunctionCall(new Reference('toString', new Reference('right')));
+                    let strRight = Evaluator.evaluateFunctionCall(context, toStringCall);
+                    result.set('value', left.get('value') + strRight.get('value'));
+                    // err(`Invalid use of operator '${TokenType.Plus}'`);
                     break;
             }
 
             return result;
         })));
 
-        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -210,6 +213,31 @@ module.exports = class extends Class {
         })));
 
         // Standard functions
+
+        // Gets the character at a specified index of the string
+        this.functions.set('charAt', new Func('charAt', ['index'], new NativeExpression(context => {
+            let index = context.getValue(context.environment.get('index'));
+
+            // Index must be a number
+            if (index.type != Types.Number) {
+                err(`String.charAt must take a Number`);
+            }
+
+            index = index.get('value');
+            let str = context.self.get('value');
+
+            // Allow negative indexing
+            if (index < 0) index += str.length;
+            // String index must be in range
+            if (index < 0 || index >= str.length) {
+                err(`String index [${index}] out of range`);
+            }
+
+            // Get the character at the index and return it as a String
+            let result = Evaluator.create(context, Types.String);
+            result.set('value', str[index]);
+            return result;
+        })));
 
         // The length of the string
         this.functions.set('length', new Func('length', [], new NativeExpression(context => {

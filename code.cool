@@ -1,5 +1,1 @@
-x = new Number(9)
-
-x = "nothing"
-
-Console.print(2+2)
+Console.print(x - "what")

@@ -764,7 +764,7 @@ module.exports = class {
     // Used for built-in data types and functions
     // RETURNS: Result of the native expression
     static evaluateNativeExpression(context, expression) {
-        return expression.func(context, Report.error);
+        return expression.func(context);
     }
 
     // RETURNS: Obj that the reference points to

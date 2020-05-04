@@ -8,10 +8,11 @@ const This = require('../../ast/this');
 
 const Evaluator = require('../../interpreter/evaluator');
 
-const Obj = require('../object');
 const Types = require('../../types/types');
 
 const TokenType = require('../../lexer/tokenType');
+
+const err = require('../../utils/report').error;
 
 module.exports = class extends Class {
     constructor() {
@@ -171,7 +172,7 @@ module.exports = class extends Class {
         })));
 
         // Remove at item at a specified index (returns the removed item)
-        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['index'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['index'], new NativeExpression(context => {
             let indexObj = context.getValue(context.environment.get('index'));
 
             // Array index must be a number
@@ -204,7 +205,7 @@ module.exports = class extends Class {
         // Standard functions
 
         // Goes through each item and calls a function on it
-        this.functions.set('forEach', new Func('forEach', ['func'], new NativeExpression((context, err) => {
+        this.functions.set('forEach', new Func('forEach', ['func'], new NativeExpression(context => {
             let func = context.getValue(context.environment.get('func'));
             if (func.type != Types.Function) {
                 err(`forEach must take a function`);

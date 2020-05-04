@@ -1,6 +1,5 @@
 const Class = require('../../ast/class');
 
-const Obj = require('../object');
 const Types = require('../../types/types');
 
 const Evaluator = require('../../interpreter/evaluator');

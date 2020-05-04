@@ -18,9 +18,9 @@ let codeText;
 
 let classes = [];
 
-// const filename = 'code.cool';
+const filename = 'code.cool';
 // const filename = 'examples/division.cool';
-const filename = 'examples/chess/chess.cool';
+// const filename = 'examples/chess/chess.cool';
 
 fs.readFile(`./${filename}`, 'utf8', (err, data) => {
     if (err) {

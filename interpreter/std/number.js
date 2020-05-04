@@ -1,16 +1,15 @@
 const Class = require('../../ast/class');
 const Func = require('../../ast/func');
-const FunctionCall = require('../../ast/functioncall');
 const NativeExpression = require('../../ast/nativeexpression');
 const Reference = require('../../ast/reference');
-const This = require('../../ast/this');
 
 const Evaluator = require('../../interpreter/evaluator');
 
-const Obj = require('../object');
 const Types = require('../../types/types');
 
 const TokenType = require('../../lexer/tokenType');
+
+const err = require('../../utils/report').error;
 
 // Number Class
 module.exports = class extends Class {
@@ -158,7 +157,7 @@ module.exports = class extends Class {
         })));
 
         // Arithmetic operators
-        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Plus, new Func(TokenType.Plus, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -185,7 +184,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Minus, new Func(TokenType.Minus, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -208,7 +207,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Times, new Func(TokenType.Times, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -239,7 +238,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.set(TokenType.Divide, new Func(TokenType.Divide, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Divide, new Func(TokenType.Divide, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
@@ -258,7 +257,7 @@ module.exports = class extends Class {
             return result;
         })));
 
-        this.functions.set(TokenType.Mod, new Func(TokenType.Mod, ['right'], new NativeExpression((context, err) => {
+        this.functions.set(TokenType.Mod, new Func(TokenType.Mod, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));
             let left = context.self;
             let result;
