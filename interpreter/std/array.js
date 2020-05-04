@@ -22,6 +22,22 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        this.params = [];
+
+        this.init = new NativeExpression(context => {
+            // Simply set the contexts of the arguments array to this array
+            let array = Evaluator.evaluateReference(context, new Reference('arguments'));
+            array = array.get('value');
+
+            // Add references to each item in the array so they aren't lost
+            for (let address of array) {
+                context.store.references[address]++;
+            }
+
+            // Set the internal value property
+            context.self.set('value', array);
+        });
+
         // Comparison operators
         this.functions.set(TokenType.DoubleEquals, new Func(TokenType.DoubleEquals, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));

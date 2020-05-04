@@ -4,6 +4,7 @@ const Func = require('../../ast/func');
 const FunctionCall = require('../../ast/functioncall');
 const NativeExpression = require('../../ast/nativeexpression');
 const Reference = require('../../ast/reference');
+const This = require('../../ast/this');
 
 const Evaluator = require('../../interpreter/evaluator');
 
@@ -20,6 +21,39 @@ module.exports = class extends Class {
         this.name = Types.String;
 
         this.superClass = new Reference(Types.Object);
+
+        this.params = ['value'];
+
+        this.init = new NativeExpression(context => {
+            let strAddress = context.self.getProperty('value');
+            let str = context.getValue(strAddress);
+
+            // Undefined creates an empty string
+            if (str.type == Types.Undefined) {
+                context.self.set('value', '');
+
+                // Delete the user-defined property
+                context.store.free(strAddress);
+                context.self.deleteProperty('value');
+
+                return;
+            }
+
+            // Convert the property to a String if it isn't one already
+            if (str.type != Types.String) {
+                let call = new FunctionCall(new Reference('toString', new Reference('value', new This())));
+                str = Evaluator.evaluateFunctionCall(context, call);
+            }
+
+            str = str.get('value');
+
+            // Set the internal value property
+            context.self.set('value', str);
+
+            // Delete the user-defined property
+            context.store.free(strAddress);
+            context.self.deleteProperty('value');
+        });
 
         // Comparison operators
         this.functions.set(TokenType.DoubleEquals, new Func(TokenType.DoubleEquals, ['right'], new NativeExpression(context => {

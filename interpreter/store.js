@@ -112,6 +112,10 @@ module.exports = class {
 
                 // Mark this address as free
                 this.freeAddresses.push(address);
+            } else if (this.references[address] < 0) {
+                console.log("hmm.....")
+                this.references[address] = 0;
+                throw new Error();
             }
         }
     }

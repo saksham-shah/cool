@@ -20,6 +20,25 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        this.params = ['value'];
+
+        this.init = new NativeExpression(context => {
+            let numAddress = context.self.getProperty('value');
+            let num = context.getValue(numAddress);
+            if (num.type != Types.Number) {
+                err(`Number must be Number`);
+            }
+
+            num = num.get('value');
+
+            // Set the internal value property
+            context.self.set('value', num);
+
+            // Delete the user-defined property
+            context.store.free(numAddress);
+            context.self.deleteProperty('value');
+        });
+
         // Comparison operators
         this.functions.set(TokenType.DoubleEquals, new Func(TokenType.DoubleEquals, ['right'], new NativeExpression(context => {
             let right = context.getValue(context.environment.get('right'));

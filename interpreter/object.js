@@ -30,6 +30,11 @@ module.exports = class Obj {
         this.properties.set(propertyName, address);
     }
 
+    // RETURNS: Nothing
+    deleteProperty(propertyName) {
+        this.properties.delete(propertyName);
+    }
+
     // RETURNS: Value stored at that property
     get(propertyName) {
         return this.devProperties.get(propertyName);

@@ -508,6 +508,11 @@ module.exports = class {
         context.environment.enterScope(classObj.get('scope'));
 
         let klass = classObj.get('class');
+        
+        // Create the arguments array
+        let array = new ArrayLiteral(argObjects);
+        let assign = new Assignment(new Reference('arguments'), '=', array, true);
+        this.evaluateAssignment(context, assign);
 
         // Add each argument to the scope by setting it to the name of the corresponding parameter
         for (let i = 0; i < klass.params.length; i++) {
@@ -515,6 +520,7 @@ module.exports = class {
             if (i >= argObjects.length) {
                 // If a parameter hasn't been passed into the constructor, it is set as Undefined
                 thisArgument = this.create(context, Types.Undefined);
+                argObjects.push(thisArgument);
             } else {
                 thisArgument = argObjects[i];
             }
@@ -522,11 +528,6 @@ module.exports = class {
             let assign = new Assignment(new Reference(klass.params[i]), '=', thisArgument, true);
             this.evaluateAssignment(context, assign);
         }
-
-        // Create the arguments array
-        let array = new ArrayLiteral(argObjects);
-        let assign = new Assignment(new Reference('arguments'), '=', array, true);
-        this.evaluateAssignment(context, assign);
 
         for (let add of temps) {
             context.store.free(add);
@@ -568,10 +569,10 @@ module.exports = class {
 
         // Add all of the arguments which were passed into the constructor
         for (let i = 0; i < klass.params.length; i++) {
-            if (i < argObjects.length) {
+            // if (i < argObjects.length) {
                 let assign = new Assignment(new Reference(klass.params[i], new This()), '=', argObjects[i]);
                 this.evaluateAssignment(context, assign);
-            }
+            // }
         }
 
         // Run the 'init' expression of the class

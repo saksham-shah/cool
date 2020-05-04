@@ -20,6 +20,28 @@ module.exports = class extends Class {
 
         this.superClass = new Reference(Types.Object);
 
+        this.params = ['value'];
+
+        this.init = new NativeExpression(context => {
+            let boolAddress = context.self.getProperty('value');
+            let bool = context.getValue(boolAddress);
+
+            // Convert the property to a Boolean if it isn't one already
+            if (bool.type != Types.Boolean) {
+                let call = new FunctionCall(new Reference('toBoolean', new Reference('value', new This())));
+                bool = Evaluator.evaluateFunctionCall(context, call);
+            }
+
+            bool = bool.get('value');
+
+            // Set the internal value property
+            context.self.set('value', bool);
+
+            // Delete the user-defined property
+            context.store.free(boolAddress);
+            context.self.deleteProperty('value');
+        });
+
         // Comparison operator
         this.functions.set(TokenType.DoubleEquals, new Func(TokenType.DoubleEquals, ['right'], new NativeExpression(context => {
             // Check what boolean the other object evaluates to
