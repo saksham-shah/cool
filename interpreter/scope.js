@@ -26,6 +26,24 @@ module.exports = class {
     // Stores the memory address that the identifier refers to
     // RETURNS: Boolean which says whether the identifier has been stored
     set(identifier, address, forceNewScope = false, replaceOnly = false) {
+        if (forceNewScope || this.identifiers.get(identifier) != undefined) {
+            this.identifiers.set(identifier, address);
+            return true;
+        }
+
+        if (this.parent != null) {
+            let stored = this.parent.set(identifier, address, false, true);
+
+            if (stored) return stored;
+        }
+
+        if (!replaceOnly) {
+            this.identifiers.set(identifier, address);
+            return true;
+        }
+
+        return false;
+        /*
         let stored = false;
         // Looks for a variable to replace in a parent scope
         // If forceNewScope is true, it is forced to create a new identifier in this scope
@@ -42,7 +60,7 @@ module.exports = class {
             }
         }
 
-        return stored;
+        return stored;*/
     }
 
     // Frees up all the space taken up by identifiers stored in this scope

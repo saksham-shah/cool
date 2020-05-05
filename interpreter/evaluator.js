@@ -424,6 +424,12 @@ module.exports = class {
         let classObj = this.create(context, Types.Class);
         context.store.pushTemp(classObj);
 
+        // If the class has a name, store it as a reference
+        if (klass.name != undefined) {
+            let assign = new Assignment(new Reference(klass.name), '=', classObj, true);
+            this.evaluateAssignment(context, assign);
+        }
+
         classObj.set('class', klass);
         
         // Set its super class if it has one
@@ -472,12 +478,6 @@ module.exports = class {
 
         // Store the addresses of the functions in the class object
         classObj.set('functions', functionAddresses);
-
-        // If the class has a name, store it as a reference
-        if (klass.name != undefined) {
-            let assign = new Assignment(new Reference(klass.name), '=', classObj, true);
-            this.evaluateAssignment(context, assign);
-        }
 
         context.store.addPlaceholder(classObj);
         context.store.popTemp();
@@ -652,6 +652,10 @@ module.exports = class {
         }
 
         let func = this.evaluate(context, call.reference);
+
+        // Stop the function from being freed
+        // context.store.pushTemp(func);
+
         // Set the object back to the original expression
         call.reference.object = tempObject;
 
@@ -668,6 +672,10 @@ module.exports = class {
             }
 
             object = context.getValue(address);
+
+            // Is this really needed? I'm not sure but I'm scared to remove it
+            // context.store.pushTemp(object);
+            // tempPushed = true;
         }
 
         return this.evaluateFunctionCallImpl(context, object, func, call, tempPushed);
@@ -726,6 +734,7 @@ module.exports = class {
             value = this.create(context, Types.Undefined);
         }
 
+        // context.store.popTemp();
         // Explained in evaluateFunctionCall above
         if (tempPushed) {
             context.store.popTemp();
