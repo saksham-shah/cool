@@ -5,6 +5,11 @@ const RunFile = require('./runfile');
 
 const Report = require('./utils/report');
 
+// Make sure config.json exists
+if (!fs.existsSync('./cool/config.json')) {
+    throw new Error(`Cannot find config file (cool/config.json). Have you run 'npm run setup'?`)
+}
+
 // Get the path to the file which will be run
 let config = fs.readFileSync('./cool/config.json');
 config = JSON.parse(config);

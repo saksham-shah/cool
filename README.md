@@ -18,10 +18,30 @@ Once you have installed Node, type these commands in a prompt:
 2. ```$ cd cool```
 3. ```$ npm install```
 ### Setting up
-*To be added*
+Run `npm run setup` to set up the program. A directory called `cool` will be created with some files in it. Read the README file in the directory which explains what each file is for.
 ### Your first *Cool* program
-*To be added*
+The setup program will have created a directory called `code` in the previously mentioned `cool` directory. There will be a file called `code.cool` in this directory, with the following code:
+```
+// Ask the user for their name
+Console.print("Enter name:")
+name = Console.input()
+
+// Reply with their name
+Console.print("Hello, " + name + "! Welcome to Cool!")
+```
+Run `npm run main` and this code will be run by the *Cool* interpreter.
+
+You can write your own code in this file and the interpreter will execute it. You can also open up `config.json` (also in the `cool` directory) to change which file the interpreter will execute.
+
+```json
+{
+	"input": "code.cool"
+}
+```
+The `input` property can be changed to a different path, and the interpreter will execute the file found at that path instead.
+
+*NOTE: The path in the `input` property is relative to the `code` directory. All Cool files should be kept in this directory.*
 ## Learn *Cool*
-Check out the [tutorial](wiki/Tutorial) pages in the Wiki!
+Check out the [tutorial](https://github.com/saksham-shah/cool/wiki/Tutorial) pages in the Wiki!
 ## Credits
 *Cool* was made by Saksham Shah.
