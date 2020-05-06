@@ -8,6 +8,7 @@
   },
   "scripts": {
     "main": "node src/index.js",
+    "setup": "node setup/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

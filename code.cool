@@ -1,5 +1,0 @@
-Car = class {
-    static car = () => Car
-}
-
-Console.print(Car.car())

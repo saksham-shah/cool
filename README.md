@@ -15,13 +15,13 @@ To start coding in *Cool*, you will need to install [Node.js](https://nodejs.org
 Once you have installed Node, type these commands in a prompt:
 
 1. ```$ git clone https://github.com/saksham-shah/cool.git```
-2. ```cd cool```
-3. ```npm install```
+2. ```$ cd cool```
+3. ```$ npm install```
 ### Setting up
 *To be added*
 ### Your first *Cool* program
 *To be added*
 ## Learn *Cool*
-Check out the tutorial pages in the Wiki!
+Check out the [tutorial](wiki/Tutorial) pages in the Wiki!
 ## Credits
 *Cool* was made by Saksham Shah.

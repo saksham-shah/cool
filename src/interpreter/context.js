@@ -6,12 +6,12 @@ const Types = require('../types/types');
 const Evaluator = require('./evaluator');
 
 module.exports = class {
-    constructor() {
+    constructor(store = new Store()) {
         // Stores all identifiers and their memory addresses
         this.environment = new Environment(this);
 
         // Stores the actual data
-        this.store = new Store(this);
+        this.store = store;
 
         // All the named classes available in this context
         this.classes = new Map();

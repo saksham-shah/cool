@@ -1,0 +1,6 @@
+// Ask the user for their name
+Console.print("Enter name:")
+name = Console.input()
+
+// Reply with their name
+Console.print("Hello, " + name + "! Welcome to Cool!")

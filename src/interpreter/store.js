@@ -1,6 +1,6 @@
 module.exports = class {
-    constructor(context) {
-        this.context = context;
+    constructor() {
+        // this.context = context;
 
         // Stores all of the values in use
         this.locations = [];
