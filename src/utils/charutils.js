@@ -28,6 +28,10 @@ module.exports = class {
         return char === ':';
     }
 
+    static isSemicolon(char) {
+        return char === ';';
+    }
+
     static isOperator(char) {
         return char === '=' || char === '+' || char === '-' || char === '*' || char === '/' || char === '%' || char === '!' || char === '&' || char === '|' || char === '>' || char === '<';
     }
@@ -50,7 +54,7 @@ module.exports = class {
 
     // Uses regex to find whitespace
     static isWhitespace(char) {
-        return /[ \t\r\f\v\u00A0\u2028\u2029;]/.test(char);
+        return /[ \t\r\f\v\u00A0\u2028\u2029]/.test(char);
     }
 
     static isStringMark(char) {

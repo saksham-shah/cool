@@ -30,7 +30,11 @@ name = Console.input()
 Console.print("Hello, " + name + "! Welcome to Cool!")
 ```
 Run `npm run main` and this code will be run by the *Cool* interpreter.
-
+```
+OUTPUT: Enter name:
+ INPUT: Cool
+OUTPUT: Hello, Cool! Welcome to Cool!
+```
 You can write your own code in this file and the interpreter will execute it. You can also open up `config.json` (also in the `cool` directory) to change which file the interpreter will execute.
 
 ```json

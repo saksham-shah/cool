@@ -133,6 +133,10 @@ module.exports = class {
             } else {
                 definitions.push(ast);
             }
+
+            if (this.isNext(TokenType.Semicolon)) {
+                this.expect(TokenType.Semicolon);
+            }
         }
 
         let block = new Block(expressions, definitions);
@@ -341,6 +345,10 @@ module.exports = class {
             } else {
                 definitions.push(ast);
             }
+
+            if (this.isNext(TokenType.Semicolon)) {
+                this.expect(TokenType.Semicolon);
+            }
         }
 
         this.expect(TokenType.CloseBrace);
@@ -394,6 +402,10 @@ module.exports = class {
         if (this.isNext(TokenType.Extends)) {
             this.expect(TokenType.Extends);
             let superClassCall = this.parseProperty();
+
+            if (superClassCall.isReference()) {
+                superClassCall = new FunctionCall(superClassCall);
+            }
 
             if (!superClassCall.isFunctionCall()) {
                 Report.error(`extends must be followed by a constructor call`, superClassCall);
@@ -457,6 +469,10 @@ module.exports = class {
         this.expect(TokenType.New);
 
         let call = this.parseProperty();
+
+        if (call.isReference()) {
+            call = new FunctionCall(call);
+        }
 
         if (!call.isFunctionCall()) {
             Report.error(`new must be followed by a constructor call`, call);
@@ -624,6 +640,7 @@ module.exports = class {
     // Checks whether the next token is a particular type
     // RETURNS: Boolean
     isNext(...tokenTypes) {
+        this.skipNewLines();
         return tokenTypes.indexOf(this.currentToken.type) >= 0;
     }
 
@@ -632,6 +649,7 @@ module.exports = class {
     // Used when only a particular token would be acceptable (e.g. closing brackets after opening them)
     // RETURNS: Token
     expect(tokenType) {
+        this.skipNewLines()
         let token = this.currentToken;
 
         if (token.type !== tokenType) {
@@ -685,5 +703,13 @@ module.exports = class {
         return token.type === TokenType.Equal || token.type === TokenType.PlusEqual
             || token.type === TokenType.MinusEqual || token.type === TokenType.TimesEqual
             || token.type === TokenType.DivideEqual || token.type === TokenType.ModEqual
+    }
+
+    // Skips all new line tokens
+    // RETURNS: Nothing
+    skipNewLines() {
+        while (this.currentToken.type == TokenType.Newline) {
+            this.currentToken = this.lexer.nextToken();
+        }
     }
 }

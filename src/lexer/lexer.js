@@ -100,18 +100,20 @@ module.exports = class {
             return this.recogniseBracket(char);
         }
 
-        if (CharUtils.isDot(char) || CharUtils.isComma(char) || CharUtils.isColon(char)) {
+        if (CharUtils.isDot(char) || CharUtils.isComma(char) || CharUtils.isColon(char) || CharUtils.isSemicolon(char)) {
             return this.recogniseDelimiter(char);
         }
 
-        // if (CharUtils.isNewline(char)) {
+        if (CharUtils.isNewline(char)) {
+            let line = this.line;
+            let column = this.column;
 
-        //     this.counter++;
+            this.counter++;
+            this.line++;
+            this.column = 0;
 
-
-
-        //     //return new Token(TokenType.Newline, 'new line');
-        // }
+            return new Token(TokenType.Newline, 'new line', line, column, this.file);
+        }
 
         Report.error(`Unexpected token ${char}`, this);
     }
@@ -368,6 +370,10 @@ module.exports = class {
         if (char === ':') {
             return new Token(TokenType.Colon, ':', this.line, this.column - 1, this.file);
         }
+
+        if (char === ';') {
+            return new Token(TokenType.Semicolon, ';', this.line, this.column - 1, this.file);
+        }
     }
 
     // Gets the next character in the input
@@ -386,11 +392,11 @@ module.exports = class {
     // Remove unnecessary whitespace
     // RETURNS: nothing
     skipWhiteSpace() {
-        while (this.counter < this.len && (CharUtils.isWhitespace(this.getChar()) || CharUtils.isNewline(this.getChar()))) {
-            if (CharUtils.isNewline(this.getChar())) {
-                this.line++;
-                this.column = 0;
-            }
+        while (this.counter < this.len && (CharUtils.isWhitespace(this.getChar()))) {
+            // if (CharUtils.isNewline(this.getChar())) {
+            //     this.line++;
+            //     this.column = 0;
+            // }
             this.counter++;
             this.column++;
         }
