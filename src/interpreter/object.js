@@ -51,9 +51,9 @@ module.exports = class Obj {
     getReferences() {
         let addresses = [];
         // Adds the address of the object's class
-        if (!this.internal) {
-            addresses.push(this.typeAddress);
-        }
+        // if (!this.internal) {
+        addresses.push(this.typeAddress);
+        // }
 
         // Adds all object properties
         for (let address of this.properties.values()) {

@@ -20,7 +20,7 @@ module.exports = class {
 
     // Takes a reference and finds the address it refers to
     // RETURNS: The address of that reference, or undefined if it hasn't yet been stored
-    static getAddress(context, reference, forceNewScope = false) {
+    static getAddress(context, reference, forceNewScope = false, forAssignment = false) {
         let address;
 
         // If the reference is already an object, just return the object's address
@@ -86,26 +86,28 @@ module.exports = class {
                 return address;
             }
 
-            // Go through the object class and look for a function with that name
-            let classAddress = obj.typeAddress;
-            do {
-                let classObj = context.getValue(classAddress);
-                
-                // Only check if it is a class
-                if (classObj.type == Types.Class) {
-                    let classFuncs = classObj.get('functions');
-                    address = classFuncs.get(propName);
-    
-                    // Recursively check super classes if the function isn't found
-                    classAddress = classObj.get('super');
-                } else {
-                    classAddress = undefined;
-                }
+            if (!forAssignment) {
+                // Go through the object class and look for a function with that name
+                let classAddress = obj.typeAddress;
+                do {
+                    let classObj = context.getValue(classAddress);
+                    
+                    // Only check if it is a class
+                    if (classObj.type == Types.Class) {
+                        let classFuncs = classObj.get('functions');
+                        address = classFuncs.get(propName);
+        
+                        // Recursively check super classes if the function isn't found
+                        classAddress = classObj.get('super');
+                    } else {
+                        classAddress = undefined;
+                    }
 
-            } while (address == undefined && classAddress != undefined);
-            if (address != undefined) {
-                context.store.popTemp();
-                return address;
+                } while (address == undefined && classAddress != undefined);
+                if (address != undefined) {
+                    context.store.popTemp();
+                    return address;
+                }
             }
 
             // Create a new property of the object
@@ -158,7 +160,7 @@ module.exports = class {
                 // Check if it is an array and access the corresponding array index
                 if (result.type == Types.Number) {
                     if (obj.type != Types.Array) {
-                        Report.error(`Cannot access numeric property of non-Array object`, reference.identifier);
+                        Report.error(`Cannot set numeric property of non-Array object`, reference.identifier);
                     }
                     
                     // Array indexing
@@ -223,7 +225,13 @@ module.exports = class {
     static create(context, type) {
         let address = this.getAddress(context, new Reference(type));
 
+        if (context.store.read(address) == undefined) {
+            context.classes.set(type, address);
+        }
+
         let obj = new Obj(address);
+
+        context.store.references[address]++;
 
         obj.type = type;
         obj.internal = true;
@@ -363,7 +371,7 @@ module.exports = class {
         let refIdentifier = assignment.reference.identifier;
         
         // Get the current address of the reference and store the object there
-        let address = this.getAddress(context, assignment.reference, assignment.forceNewScope);
+        let address = this.getAddress(context, assignment.reference, assignment.forceNewScope, true);
         let newAddress = context.store.write(address, value);
 
         // If the address has changed, store the new address
@@ -422,6 +430,10 @@ module.exports = class {
     static evaluateClass(context, klass) {
         // Create the class object
         let classObj = this.create(context, Types.Class);
+        if (klass.name != undefined && context.classes.has(klass.name)) {
+            classObj.address = context.classes.get(klass.name);
+            context.store.locations[classObj.address] = classObj;
+        }
         context.store.pushTemp(classObj);
 
         // If the class has a name, store it as a reference
@@ -461,9 +473,9 @@ module.exports = class {
             let obj = this.evaluateAssignment(context, assign);
 
             // Static functions operate on the Class object that they are a part of
-            if (obj.type == Types.Function) {
-                obj.set('this', context.store.alloc(classObj));
-            }
+            // if (obj.type == Types.Function) {
+            //     obj.set('this', context.store.alloc(classObj));
+            // }
         }
 
         // Store all functions of this class
@@ -668,10 +680,11 @@ module.exports = class {
         if (object == undefined) {
             let address = func.get('this');
             if (address == undefined) {
-                Report.error(`Function requires calling object`, call);
+                object = this.create(context, Types.Undefined);
+                // Report.error(`Function requires calling object`, call);
+            } else {
+                object = context.getValue(address);
             }
-
-            object = context.getValue(address);
 
             // Is this really needed? I'm not sure but I'm scared to remove it
             // context.store.pushTemp(object);
