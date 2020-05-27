@@ -347,6 +347,7 @@ module.exports = class {
         }
 
         obj.set('value', arrayItems);
+        context.store.addPlaceholder(obj);
 
         return obj;
     }
@@ -633,6 +634,7 @@ module.exports = class {
                 this.evaluateAssignment(context, assign);
             }
         }
+        context.store.addPlaceholder(obj);
         
         return obj;
     }
@@ -717,6 +719,11 @@ module.exports = class {
 
         func = func.get('function');
 
+        // Create the arguments array
+        let array = new ArrayLiteral(argObjects);
+        let assign = new Assignment(new Reference('arguments'), '=', array, true);
+        this.evaluateAssignment(context, assign);
+
         // Add each argument to the scope by setting it to the name of the corresponding parameter
         for (let i = 0; i < func.params.length; i++) {
             let thisArgument;
@@ -730,11 +737,6 @@ module.exports = class {
             let assign = new Assignment(new Reference(func.params[i]), '=', thisArgument, true);
             this.evaluateAssignment(context, assign);
         }
-
-        // Create the arguments array
-        let array = new ArrayLiteral(argObjects);
-        let assign = new Assignment(new Reference('arguments'), '=', array, true);
-        this.evaluateAssignment(context, assign);
 
         for (let add of temps) {
             context.store.free(add);
