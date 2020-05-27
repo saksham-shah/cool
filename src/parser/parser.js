@@ -358,12 +358,23 @@ module.exports = class {
 
     // RETURNS: Expression
     parseBracket() {
+        let state = this.lexer.getState();
+        let brackets = 1;
         let nextToken;
         do {
-            nextToken = this.lexer.lookahead(false);
-        } while (nextToken.type != TokenType.CloseBracket);
+            nextToken = this.lexer.nextToken();
+            if (nextToken.type == TokenType.Endofinput) {
+                Report.error(`Unexpected end of input`, nextToken);
+            } else if (nextToken.type == TokenType.OpenBracket) {
+                brackets++;
+            } if (nextToken.type == TokenType.CloseBracket) {
+                brackets--;
+            } 
+        } while (brackets > 0);
 
-        nextToken = this.lexer.lookahead(false);
+        nextToken = this.lexer.nextToken();
+        this.lexer.setState(state);
+
         // Means it is an anonymous function
         if (nextToken.type == TokenType.Arrow) {
             return this.parseFunctionAnonymous();

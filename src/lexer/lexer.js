@@ -19,7 +19,7 @@ module.exports = class {
         this.column = 1;
 
         // Used for the lookahead function
-        this.buffer = [];
+        this.buffer = null;
 
         // Finite state machine which detects whether a number format is valid
         this.numberFSM = FSM.buildNumberFSM();
@@ -49,7 +49,11 @@ module.exports = class {
     // RETURNS: Token
     nextToken() {
         // If there are tokens in the buffer, return the the first one
-        if (this.buffer.length > 0) return this.buffer.splice(0, 1)[0];
+        if (this.buffer) {
+            let token =  this.buffer;
+            this.buffer = null;
+            return token;
+        };
 
         return this.readToken();
     }
@@ -67,16 +71,6 @@ module.exports = class {
         
         // Next character
         let char = this.getChar();
-
-        // CURRENTLY BROKEN
-        // while (CharUtils.isNewline(char)) {
-        //     this.counter++;
-        //     char = this.getChar();
-
-        //     this.line++;
-        //     this.column = 1;
-        //     console.log(this.line);
-        // };
 
         // Gets the corresponding token depending on what the next character is
 
@@ -120,23 +114,30 @@ module.exports = class {
 
     // Look at the next token without actually moving on to it (used by Parser)
     // RETURNS: Token
-    lookahead(fetchFromBuffer = true) {
-        // If there are tokens in the buffer, return the the first one
-        if (fetchFromBuffer && this.buffer.length > 0) {
-            return this.buffer[0];
-        }
-
+    lookahead() {
         let token = this.readToken();
 
-        this.buffer.push(token);
+        this.buffer = token;
         
         return token;
     }
 
-    // Clears the buffer
+    // Get the current position of the counter
+    // RETURNS: State object
+    getState() {
+        return {
+            counter: this.counter,
+            line: this.line,
+            column: this.column
+        }
+    }
+
+    // Sets the current position of the counter to the value in the state object
     // RETURNS: Nothing
-    clearLookahead() {
-        this.buffer = [];
+    setState(state) {
+        this.counter = state.counter;
+        this.line = state.line;
+        this.column = state.column;
     }
     
     // The next few methods all recognise and return a token
@@ -380,13 +381,6 @@ module.exports = class {
     // RETURNS: character
     getChar() {
         return this.input.charAt(this.counter);
-    }
-
-    // Look at the next character without moving the counter forward
-    // RETURNS: character
-    lookAhead() {
-        if (this.counter + 1 < this.len) return this.input.charAt(this.counter + 1);
-        return null;
     }
 
     // Remove unnecessary whitespace
