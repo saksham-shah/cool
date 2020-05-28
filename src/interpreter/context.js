@@ -13,6 +13,9 @@ module.exports = class {
         // Stores the actual data
         this.store = store;
 
+        // Initialise the base scope
+        this.environment.initialScope();
+
         // All the named classes available in this context
         this.classes = new Map();
 

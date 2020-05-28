@@ -5,39 +5,58 @@ module.exports = class {
         this.context = context;
 
         // The initial scope
-        this.scope = new Scope();
+        this.scope = null;//new Scope();
 
         // The scope stack
-        this.scopes = [this.scope];
+        this.scopes = [];
+        // this.scopes = [this.scope];
+    }
+
+    // Creates the base scope and stores it in the store
+    // RETURNS: Nothing
+    initialScope() {
+        this.scope = new Scope();
+        this.scopes.push(this.scope);
+
+        this.context.store.alloc(this.scope);
     }
 
     // Enters a scope
     // Branches off the scope at index [branchIndex]
     // By default, branches off the current scope
     // RETURNS: Nothing
-    enterScope(branchIndex) {
+    enterScope(scopeAddress) {
         let parentScope;
-        if (branchIndex == undefined) {
+        if (scopeAddress == undefined) {
             parentScope = this.scope;
 
-        } else if (branchIndex < this.scopes.length) {
-            parentScope = this.scopes[branchIndex];
-
         } else {
-            throw new Error("branchIndex out of range - environment.js")
+            parentScope = this.context.store.locations[scopeAddress];
         }
+
+        // } else if (branchIndex < this.scopes.length) {
+        //     parentScope = this.scopes[branchIndex];
+
+        // } else {
+        //     throw new Error("branchIndex out of range - environment.js")
+        // }
 
         // Create the new scope
         let newScope = new Scope(parentScope);
         this.scopes.push(newScope);
         this.scope = newScope;
+
+        // Store the new scope and add a reference to the parent scope
+        this.context.store.alloc(this.scope);
+        this.context.store.alloc(parentScope);
     }
 
     // Pops the last scope off the scope stack
     // RETURNS: Nothing
     exitScope() {
         // Free up all the identifiers used in the previous scope
-        this.scopes.pop().free(this.context);
+        // this.scopes.pop().free(this.context);
+        this.context.store.free(this.scopes.pop().address);
         this.scope = this.scopes[this.scopes.length - 1];
     }
 
@@ -45,6 +64,12 @@ module.exports = class {
     // RETURNS: Index of current scope
     getScopeIndex() {
         return this.scopes.length - 1;
+    }
+
+    // Adds a reference to the current scope and returns its address
+    // RETURNS: The address of the current scope
+    getScopeAddress() {
+        return this.context.store.alloc(this.scope);
     }
 
     // Finds where an identifier is stored

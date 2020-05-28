@@ -6,6 +6,9 @@ module.exports = class {
 
         // Stores the memory addresses linked to each identifier
         this.identifiers = new Map();
+
+        // The memory address where this scope is stored
+        this.address = undefined;
     }
 
     // Finds where an identifier is stored
@@ -70,5 +73,24 @@ module.exports = class {
         for (let address of this.identifiers.values()) {
             context.store.free(address);
         }
+    }
+
+    // Gets all the addresses stored in this scope
+    // i.e. all the identifiers
+    // RETURNS: Array of addresses
+    getReferences() {
+        let addresses = [];
+
+        // Add the address of the parent scope too
+        if (this.parent != null) {
+            addresses.push(this.parent.address);
+        }
+
+        // Get all the identifiers
+        for (let address of this.identifiers.values()) {
+            addresses.push(address);
+        }
+
+        return addresses;
     }
 }

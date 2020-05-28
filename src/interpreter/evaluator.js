@@ -461,7 +461,8 @@ module.exports = class {
         }
 
         // The scope in which this class was defined
-        classObj.set('scope', context.environment.getScopeIndex());
+        classObj.set('scope', context.environment.getScopeAddress());
+        // classObj.set('scope', context.environment.getScopeIndex());
 
         // Assign all static properties of the class
         let statics = klass.getStatics(context, classObj);
@@ -617,7 +618,8 @@ module.exports = class {
         obj.set('name', func.name != undefined ? func.name : '[Anonymous]');
         
         // The scope in which this function was defined
-        obj.set('scope', context.environment.getScopeIndex());
+        obj.set('scope', context.environment.getScopeAddress());
+        // obj.set('scope', context.environment.getScopeIndex());
         // console.log(`Function defined at scopeIndex: ${context.environment.getScopeIndex()}`);
 
         if (!(context.self instanceof Obj)) {
