@@ -1,8 +1,13 @@
 module.exports = class {
-    constructor(parent = null) {
+    constructor(environment, parent = null) {
+        this.environment = environment;
+
         // The scope directly above this one
         // Hierarchy leads back to the base scope
-        this.parent = parent;
+        this.parent = null;
+        if (parent != null) {
+            this.parent = this.environment.context.getValue(parent);
+        }
 
         // Stores the memory addresses linked to each identifier
         this.identifiers = new Map();

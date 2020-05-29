@@ -15,10 +15,10 @@ module.exports = class {
     // Creates the base scope and stores it in the store
     // RETURNS: Nothing
     initialScope() {
-        this.scope = new Scope();
-        this.scopes.push(this.scope);
+        this.scope = new Scope(this);
 
-        this.context.store.alloc(this.scope);
+        let address = this.context.store.alloc(this.scope);
+        this.scopes.push(address);
     }
 
     // Enters a scope
@@ -27,11 +27,15 @@ module.exports = class {
     // RETURNS: Nothing
     enterScope(scopeAddress) {
         let parentScope;
-        if (scopeAddress == undefined) {
-            parentScope = this.scope;
+        // if (scopeAddress == undefined) {
+        //     parentScope = this.scope;
 
-        } else {
-            parentScope = this.context.store.locations[scopeAddress];
+        // } else {
+        //     parentScope = this.context.getValue(scopeAddress);
+        // }
+
+        if (scopeAddress == undefined) {
+            scopeAddress = this.scope.address;
         }
 
         // } else if (branchIndex < this.scopes.length) {
@@ -42,13 +46,14 @@ module.exports = class {
         // }
 
         // Create the new scope
-        let newScope = new Scope(parentScope);
-        this.scopes.push(newScope);
-        this.scope = newScope;
+        this.scope = new Scope(this, scopeAddress);
+        let address = this.context.store.alloc(this.scope);
+        this.scopes.push(address);
+        // this.scope = newScope;
 
         // Store the new scope and add a reference to the parent scope
-        this.context.store.alloc(this.scope);
-        this.context.store.alloc(parentScope);
+        // this.context.store.alloc(this.scope);
+        this.context.store.alloc(this.context.getValue(scopeAddress));
     }
 
     // Pops the last scope off the scope stack
@@ -56,8 +61,9 @@ module.exports = class {
     exitScope() {
         // Free up all the identifiers used in the previous scope
         // this.scopes.pop().free(this.context);
-        this.context.store.free(this.scopes.pop().address);
-        this.scope = this.scopes[this.scopes.length - 1];
+        this.context.store.free(this.scopes.pop());
+        let address = this.scopes[this.scopes.length - 1];
+        this.scope = this.context.getValue(address);
     }
 
     // Used to store the scope in which a function or class has been defined

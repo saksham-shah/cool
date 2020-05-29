@@ -1,0 +1,33 @@
+Person = name => ({
+    getName: () => name,
+    setName: n => name = n,
+    name
+})
+
+john = Person("john")
+
+print(john.getName())
+
+// ===============================
+
+multiplier = num => x => x * num
+
+doubler = multiplier(2)
+
+print(doubler(8))
+
+// ===============================
+
+Car = class (colour, model, cost) {
+    init print("New", colour, "car -", model + "! Price:", cost)
+}
+
+CarClass = (colour, model) => class (cost) extends Car (colour, model, cost) {}
+
+RedFord = CarClass("red", "Cool")
+
+new RedFord(100)
+new RedFord(200)
+new CarClass("blue", "Cooler")(300)
+
+extract Console
