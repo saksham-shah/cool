@@ -70,6 +70,9 @@ module.exports = class Obj {
 
         // Adds references related to classes
         if (this.type == Types.Class) {
+            // The scope of the class
+            addresses.push(this.get('scope'));
+
             // All methods/functions of this class
             let funcs = this.get('functions').values();
             for (let address of funcs) {
@@ -85,6 +88,9 @@ module.exports = class Obj {
 
         // Adds references related to functions
         if (this.type == Types.Function) {
+            // The scope of the function
+            addresses.push(this.get('scope'));
+            
             // The 'this' object of the function
             let thisAddress = this.get('this');
             if (thisAddress != undefined) {

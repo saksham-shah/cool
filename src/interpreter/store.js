@@ -87,8 +87,15 @@ module.exports = class {
 
     // Frees an address when it is no longer in use
     // RETURNS: Nothing
-    free(address) {
+    free(address, reachable) {
         if (address >= 0 && address < this.locations.length) {
+
+            // If reachable is undefined, this means this is part of the tracing collector
+            // In which case, don't bother freeing the address if it isn't reachable
+            // The tracing collection will free unreachable addresses
+            if (reachable != undefined && !reachable[address]) {
+                return;
+            }
 
             let value = this.locations[address];
 
@@ -106,14 +113,16 @@ module.exports = class {
                     // Recursively frees all its references
                     let addresses = value.getReferences();
                     for (let add of addresses) {
-                        this.free(add);
+                        this.free(add, reachable);
                     }
                 }
 
                 // Mark this address as free
                 this.freeAddresses.push(address);
+
             } else if (this.references[address] < 0) {
                 console.log("hmm.....")
+                console.log(this.locations[address])
                 this.references[address] = 0;
                 throw new Error();
             }
@@ -148,7 +157,93 @@ module.exports = class {
     popTemp() {
         let address = this.tempAddresses.pop();
         this.free(address);
-
     }
 
+    // Traverses the objects and scopes stored in this store, and removes any unreachable addresses
+    // Needed to prevent memory leaks due to circular referencing
+    // RETURNS: The number of addresses it freed
+    tracingCollection(addresses) {
+        let reachable = [];
+        for (let i = 0; i < this.locations.length; i++) {
+            reachable.push(false);
+        }
+
+        // Flag all the addresses already in the array as reachable (i.e. not to be deleted)
+        for (let address of addresses) {
+            reachable[address] = true;
+        }
+
+        // Add the placeholder address
+        if (!reachable[this.placeholder]) {
+            addresses.push(this.placeholder);
+            reachable[this.placeholder] = true;
+        }
+
+        // Add the temporary addresses
+        for (let address of this.tempAddresses) {
+            if (!reachable[address]) {
+                addresses.push(address);
+                reachable[address] = true;
+            }
+        }
+
+        while (addresses.length > 0) {
+            // Get the object/scope stored at this address
+            let value = this.read(addresses[0]);
+
+            if (value != undefined) {
+                // Loop through all references made from the object
+                for (let address of value.getReferences()) {
+                    // If the address hasn't already been added to the array
+                    if (!reachable[address]) {
+                        // Set the address as reachable and add it to the array
+                        reachable[address] = true;
+                        addresses.push(address);
+                    }
+                }
+            } else {
+                console.log(`WARNING: tracing collector found undefined value @${addresses[0]}`);
+            }
+
+            if (this.references[addresses[0]] <= 0) {
+                console.log(`ERROR: tracing collector found illegal free address @${addresses[0]}. Expect an actual error any time now...`);
+            }
+
+            // Remove this address from the array
+            addresses.splice(0, 1);
+        }
+
+        let freed = 0;
+
+        for (let i = 0; i < reachable.length; i++) {
+            // If the address isn't reachable
+            if (this.references[i] > 0 && !reachable[i]) {
+                // Increment the counter
+                freed++;
+
+                // Remove the object/scope at index i
+                // Duplicate code from Store.free() for now
+
+                let value = this.locations[i];
+
+                this.locations[i] = undefined;
+                this.references[i] = 0;
+
+                if (value != undefined) {
+                    value.address = undefined;
+
+                    // Recursively frees all its references
+                    let addresses = value.getReferences();
+                    for (let address of addresses) {
+                        this.free(address, reachable);
+                    }
+                }
+
+                // Mark this address as free
+                this.freeAddresses.push(i);
+            }
+        }
+
+        return freed;
+    }
 }

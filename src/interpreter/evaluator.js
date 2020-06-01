@@ -505,7 +505,7 @@ module.exports = class {
     static evaluateClassCall(context, call) {
         // Get the class' address and the actual Class object
         let classObj = this.evaluate(context, call.reference);
-        let classAddress = context.store.alloc(classObj);
+        context.store.pushTemp(classObj);
 
         if (classObj.type != Types.Class) {
             console.log(call.reference);
@@ -514,12 +514,13 @@ module.exports = class {
 
         // Evaluate all of the arguments passed into the constructor
         let argObjects = [];
-        let temps = [];
 
         for (let i = 0; i < call.args.length; i++) {
             let obj = this.evaluate(context, call.args[i]);
             argObjects.push(obj);
-            temps.push(context.store.alloc(obj));
+            
+            // Push all the arguments to the temporary address stack so they aren't lost
+            context.store.pushTemp(obj);
         }
 
         // Enter a scope to prevent variable name clashes
@@ -547,8 +548,9 @@ module.exports = class {
             this.evaluateAssignment(context, assign);
         }
 
-        for (let add of temps) {
-            context.store.free(add);
+        // Pop all of the arguments that were pushed above
+        for (let arg of call.args) {
+            context.store.popTemp();
         }
 
         let obj;
@@ -569,11 +571,14 @@ module.exports = class {
 
             // Free the previous typeAddress before replacing it
             context.store.free(obj.typeAddress);
-            obj.typeAddress = classAddress;
+            obj.typeAddress = context.store.alloc(classObj);
         } else {
             // Otherwise just create a new object of this class
-            obj = new Obj(classAddress);
+            obj = new Obj(context.store.alloc(classObj));
         }
+
+        // Pop classObj
+        context.store.popTemp();
 
         if (klass.name != undefined) {
             obj.type = klass.name;
@@ -583,6 +588,7 @@ module.exports = class {
 
         // 'this' will point to the object
         let self = context.self;
+        context.store.pushTemp(self);
         context.self = obj;
 
         // Add all of the arguments which were passed into the constructor
@@ -606,6 +612,7 @@ module.exports = class {
         
         // Reset the 'self' of the context to what it was before
         context.self = self;
+        context.store.popTemp();
         context.environment.exitScope();
 
         return obj;
@@ -664,7 +671,7 @@ module.exports = class {
             context.store.pushTemp(object);
 
             // Makes sure the pushTemp above is followed by a popTemp in evaluateFunctionCallImpl
-            tempPushed = true;
+            // tempPushed = true;
         }
 
         let func = this.evaluate(context, call.reference);
@@ -685,40 +692,43 @@ module.exports = class {
             let address = func.get('this');
             if (address == undefined) {
                 object = this.create(context, Types.Undefined);
+
+                // context.store.pushTemp(object);
+
+                // Makes sure the pushTemp above is followed by a popTemp in evaluateFunctionCallImpl
+                // tempPushed = true;
+
                 // Report.error(`Function requires calling object`, call);
             } else {
                 object = context.getValue(address);
             }
 
             // Is this really needed? I'm not sure but I'm scared to remove it
-            // context.store.pushTemp(object);
+            context.store.pushTemp(object);
             // tempPushed = true;
         }
 
-        return this.evaluateFunctionCallImpl(context, object, func, call, tempPushed);
+        return this.evaluateFunctionCallImpl(context, object, func, call);
     }
 
     // The above function deals with choosing the correct function to use
     // This one actually calls the function and evaluates the arguments
     // RETURNS: Result of the function call
-    static evaluateFunctionCallImpl(context, object, func, call, tempPushed) {
+    static evaluateFunctionCallImpl(context, object, func, call) {
         // Evaluate all of the arguments passed into the function
         let argObjects = [];
-        let temps = [];
 
         for (let i = 0; i < call.args.length; i++) {
             let obj = this.evaluate(context, call.args[i]);
             argObjects.push(obj);
-            temps.push(context.store.alloc(obj));
+
+            // Same as in evaluateClassCall
+            context.store.pushTemp(obj);
         }
 
         // Enter a scope to prevent variable name clashes
         context.environment.enterScope(func.get('scope'));
         
-        // Set the 'self' of the context to the object that called the function
-        let self = context.self;
-        context.self = object;
-
         func = func.get('function');
 
         // Create the arguments array
@@ -740,9 +750,15 @@ module.exports = class {
             this.evaluateAssignment(context, assign);
         }
 
-        for (let add of temps) {
-            context.store.free(add);
+        // Pop all of the arguments
+        for (let arg of call.args) {
+            context.store.popTemp();
         }
+
+        // Set the 'self' of the context to the object that called the function
+        let self = context.self;
+        context.store.pushTemp(self);
+        context.self = object;
 
         // Evaluate the function
         let value = this.evaluate(context, func.body);
@@ -751,18 +767,19 @@ module.exports = class {
             value = this.create(context, Types.Undefined);
         }
 
-        // context.store.popTemp();
-        // Explained in evaluateFunctionCall above
-        if (tempPushed) {
-            context.store.popTemp();
-        }
-
         // Stops the value from being deleted when the scope is exited
         context.store.addPlaceholder(value);
 
         // Reset the 'self' of the context to what it was before
         context.self = self;
+        context.store.popTemp();
         context.environment.exitScope();
+
+        // Explained in evaluateFunctionCall above
+        // if (tempPushed) {
+        // Pop the calling object
+        context.store.popTemp();
+        // }
 
         return value;
     }
@@ -868,12 +885,11 @@ module.exports = class {
         
         // Returns an array of the evaluations of each loop
         let array = [];
-        let temps = [];
 
         while (bool.get('value')) {
             let obj = this.evaluate(context, whileExpr.body);
             array.push(obj);
-            temps.push(context.store.alloc(obj));
+            context.store.pushTemp(obj);
 
             // Redo the condition after every loop
             call = new FunctionCall(new Reference('toBoolean', whileExpr.condition));
@@ -883,8 +899,9 @@ module.exports = class {
         // Create the array and store it in a placeholder
         let result = this.evaluateArrayLiteral(context, new ArrayLiteral(array));
 
-        for (let add of temps) {
-            context.store.free(add);
+        // Pop the contents of the array
+        for (let add of array) {
+            context.store.popTemp();
         }
         
         context.store.addPlaceholder(result);
