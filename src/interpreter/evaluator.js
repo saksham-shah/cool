@@ -342,12 +342,17 @@ module.exports = class {
         for (let item of array.items) {
             let itemObj = this.evaluate(context, item);
             let address = context.store.alloc(itemObj);
+            context.store.pushTemp();
 
             arrayItems.push(address);
         }
 
         obj.set('value', arrayItems);
         context.store.addPlaceholder(obj);
+
+        for (let address of arrayItems) {
+            context.store.popTemp();
+        }
 
         return obj;
     }
